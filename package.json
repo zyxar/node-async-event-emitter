@@ -1,0 +1,25 @@
+{
+  "name": "crosscallback",
+  "version": "0.0.1",
+  "description": "Asynchronous Across Threads Callback and Event handling for Node.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zyxar/node-crosscallback.git"
+  },
+  "author": "zyxar <teamo@live.com>",
+  "scripts": {
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "contributors": [
+    "zyxar <teamo@live.com> (https://github.com/zyxar)"
+  ],
+  "bugs": {
+    "url": "https://github.com/zyxar/node-crosscallback/issues"
+  },
+  "devDependencies": {
+    "node-gyp": "~3.0.1"
+  },
+  "license": "Apache 2.0"
+}
