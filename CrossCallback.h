@@ -29,21 +29,21 @@ public:
     explicit UvAsyncCallback();
     explicit UvAsyncCallback(uv_loop_t*);
     virtual ~UvAsyncCallback();
-    virtual bool notify(const std::string& event, const std::string& data);
-    virtual bool operator()(const std::string& data) { return notify("", data); }
+    virtual bool notify(const std::string& event, const Argument& data);
+    virtual bool operator()(const Argument& data) { return notify("", data); }
     virtual size_t size();
 
 protected:
-    typedef struct {
-        std::string event, message;
-    } Data;
+    struct Data {
+        std::string event;
+        Argument message;
+    };
     virtual void operator()(const Data& data) = 0;
 
 private:
     uv_async_t* mUvHandle;
     std::mutex mLock;
     std::queue<Data> mBuffer;
-    Data mData;
 
     void process();
     static void closeCallback(uv_handle_t*);

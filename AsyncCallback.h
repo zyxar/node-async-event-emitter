@@ -15,6 +15,7 @@
 #ifndef AsyncCallback_h
 #define AsyncCallback_h
 
+#include <atomic>
 #include <string>
 
 namespace cross {
@@ -23,8 +24,96 @@ class AsyncCallback {
 public:
     AsyncCallback(){};
     virtual ~AsyncCallback(){};
-    virtual bool notify(const std::string& event, const std::string& data) = 0; // event
-    virtual bool operator()(const std::string& data) = 0; // callback
+    enum DataType {
+        UNDEFINED,
+        STRING,
+        JSON,
+        NUMBER,
+        INTEGER,
+    };
+    struct Argument {
+        DataType type;
+        uintptr_t payload;
+        virtual ~Argument()
+        {
+            --(*refcnt);
+            if ((*refcnt) == 0) {
+                delete refcnt;
+                refcnt = nullptr;
+                switch (type) {
+                case INTEGER:
+                    delete reinterpret_cast<int*>(payload);
+                    break;
+                case NUMBER:
+                    delete reinterpret_cast<double*>(payload);
+                    break;
+                case STRING:
+                case JSON:
+                    delete reinterpret_cast<std::string*>(payload);
+                    break;
+                case UNDEFINED:
+                default:
+                    return;
+                }
+            }
+        }
+
+        Argument()
+            : type{ UNDEFINED }
+            , payload{ 0 }
+            , refcnt{ new std::atomic<uint32_t>(1) }
+        {
+        }
+        Argument(const std::string& rhs, DataType t = STRING)
+            : type{ t == JSON ? JSON : STRING }
+            , payload{ reinterpret_cast<uintptr_t>(new std::string{ rhs }) }
+            , refcnt{ new std::atomic<uint32_t>(1) }
+        {
+        }
+        Argument(double rhs)
+            : type{ NUMBER }
+            , payload{ reinterpret_cast<uintptr_t>(new double{ rhs }) }
+            , refcnt{ new std::atomic<uint32_t>(1) }
+        {
+        }
+        Argument(int rhs)
+            : type{ INTEGER }
+            , payload{ reinterpret_cast<uintptr_t>(new int{ rhs }) }
+            , refcnt{ new std::atomic<uint32_t>(1) }
+        {
+        }
+        Argument(const Argument& rhs)
+            : type{ rhs.type }
+            , payload{ rhs.payload }
+            , refcnt{ rhs.refcnt }
+        {
+            if (this == &rhs)
+                return;
+            if (!refcnt)
+                refcnt = new std::atomic<uint32_t>(1);
+            else
+                ++(*refcnt);
+        }
+        Argument& operator=(const Argument& rhs)
+        {
+            if (this == &rhs)
+                return *this;
+            --(*refcnt);
+            type = rhs.type;
+            payload = rhs.payload;
+            refcnt = rhs.refcnt;
+            if (!refcnt)
+                refcnt = new std::atomic<uint32_t>(1);
+            else
+                ++(*refcnt);
+            return *this;
+        }
+
+    private:
+        std::atomic<uint32_t>* refcnt;
+    };
+    virtual bool notify(const std::string& event, const Argument&) = 0; // event
+    virtual bool operator()(const Argument&) = 0; // callback
 };
 
 } // namespace cross

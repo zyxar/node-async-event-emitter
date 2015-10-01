@@ -166,9 +166,21 @@ void NodeAsyncCallback::operator()(const Data& data)
         return;
 
     const unsigned argc = 1;
-    Local<Value> argv[argc] = {
-        String::NewFromUtf8(isolate, data.message.c_str())
-    };
+    Local<Value> argv[argc];
+    switch (data.message.type) {
+    case AsyncCallback::NUMBER:
+        argv[0] = Number::New(isolate, *reinterpret_cast<double*>(data.message.payload));
+        break;
+    case AsyncCallback::INTEGER:
+        argv[0] = Integer::New(isolate, *reinterpret_cast<int*>(data.message.payload));
+        break;
+    case AsyncCallback::JSON:
+    case AsyncCallback::STRING:
+        argv[0] = String::NewFromUtf8(isolate, (reinterpret_cast<std::string*>(data.message.payload))->c_str());
+        break;
+    default:
+        return;
+    }
 
     TryCatch try_catch;
     if (store->IsFunction()) {
@@ -236,13 +248,14 @@ UvAsyncCallback::~UvAsyncCallback()
 // main thread
 void UvAsyncCallback::process()
 {
+    Data data;
     while (!mBuffer.empty()) {
         {
             std::lock_guard<std::mutex> lock(mLock);
-            mData = mBuffer.front();
+            data = mBuffer.front();
             mBuffer.pop();
         }
-        (*this)(mData);
+        (*this)(data);
     }
 }
 
@@ -252,7 +265,7 @@ size_t UvAsyncCallback::size()
 }
 
 // other thread
-bool UvAsyncCallback::notify(const std::string& event, const std::string& data)
+bool UvAsyncCallback::notify(const std::string& event, const Argument& data)
 {
     if (uv_is_active(reinterpret_cast<uv_handle_t*>(mUvHandle))) {
         {
