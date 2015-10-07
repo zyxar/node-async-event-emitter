@@ -176,7 +176,7 @@ void NodeAsyncCallback::operator()(const Data& data)
         break;
     case AsyncCallback::JSON:
     case AsyncCallback::STRING:
-        argv[0] = String::NewFromUtf8(isolate, (reinterpret_cast<std::string*>(data.message.payload))->c_str());
+        argv[0] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(data.message.payload));
         break;
     default:
         return;

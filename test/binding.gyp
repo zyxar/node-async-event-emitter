@@ -2,6 +2,7 @@
   'targets': [{
     'target_name': 'addon',
     'sources': [ 'addon.cc',
+      "<!(node -e \"require('..')\")/AsyncCallback.cc",
       "<!(node -e \"require('..')\")/CrossCallback.cc"
     ],
     'include_dirs' : ["<!(node -e \"require('..')\")"],
