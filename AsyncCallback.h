@@ -41,9 +41,11 @@ public:
         Argument(int rhs);
         Argument(const Argument& rhs);
         Argument& operator=(const Argument& rhs);
+        const Argument* next() const;
 
     private:
         std::atomic<uint32_t>* refcnt;
+        Argument* nextptr;
     };
     virtual bool notify(const std::string& event, const Argument&) = 0; // event
     virtual bool operator()(const Argument&) = 0; // callback

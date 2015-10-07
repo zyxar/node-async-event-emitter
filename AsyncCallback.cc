@@ -41,12 +41,15 @@ AsyncCallback::Argument::~Argument()
             return;
         }
     }
+    if (nextptr)
+        delete nextptr;
 }
 
 AsyncCallback::Argument::Argument()
     : type{ UNDEFINED }
     , payload{ 0 }
     , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
 {
 }
 
@@ -63,6 +66,7 @@ AsyncCallback::Argument::Argument(const std::string& rhs, DataType t)
     : type{ t == JSON ? JSON : STRING }
     , payload{ reinterpret_cast<uintptr_t>(createString(rhs)) }
     , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
 {
 }
 
@@ -70,6 +74,7 @@ AsyncCallback::Argument::Argument(double rhs)
     : type{ NUMBER }
     , payload{ reinterpret_cast<uintptr_t>(new double{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
 {
 }
 
@@ -77,6 +82,7 @@ AsyncCallback::Argument::Argument(int rhs)
     : type{ INTEGER }
     , payload{ reinterpret_cast<uintptr_t>(new int{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
 {
 }
 
@@ -84,6 +90,7 @@ AsyncCallback::Argument::Argument(const Argument& rhs)
     : type{ rhs.type }
     , payload{ rhs.payload }
     , refcnt{ rhs.refcnt }
+    , nextptr{ rhs.nextptr }
 {
     if (this == &rhs)
         return;
@@ -101,11 +108,17 @@ AsyncCallback::Argument& AsyncCallback::Argument::operator=(const Argument& rhs)
     type = rhs.type;
     payload = rhs.payload;
     refcnt = rhs.refcnt;
+    nextptr = rhs.nextptr;
     if (!refcnt)
         refcnt = new std::atomic<uint32_t>(1);
     else
         ++(*refcnt);
     return *this;
+}
+
+const AsyncCallback::Argument* AsyncCallback::Argument::next() const
+{
+    return nextptr;
 }
 
 } // namespace cross
