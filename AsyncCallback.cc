@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "AsyncCallback.h"
+#include <string.h>
 
 namespace cross {
 
