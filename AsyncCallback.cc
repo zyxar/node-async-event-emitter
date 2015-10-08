@@ -121,4 +121,11 @@ const AsyncCallback::Argument* AsyncCallback::Argument::next() const
     return nextptr;
 }
 
+size_t AsyncCallback::Argument::size() const
+{
+    if (!nextptr)
+        return 1;
+    return 1 + nextptr->size();
+}
+
 } // namespace cross

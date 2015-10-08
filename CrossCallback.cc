@@ -165,23 +165,30 @@ void NodeAsyncCallback::operator()(const Data& data)
     if (store.IsEmpty())
         return;
 
-    const unsigned argc = 1;
-    Local<Value> argv[argc];
-    switch (data.message.type) {
-    case AsyncCallback::NUMBER:
-        argv[0] = Number::New(isolate, *reinterpret_cast<double*>(data.message.payload));
-        break;
-    case AsyncCallback::INTEGER:
-        argv[0] = Integer::New(isolate, *reinterpret_cast<int*>(data.message.payload));
-        break;
-    case AsyncCallback::JSON:
-        argv[0] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(data.message.payload)));
-        break;
-    case AsyncCallback::STRING:
-        argv[0] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(data.message.payload));
-        break;
-    default:
-        return;
+    const unsigned argc = data.message.size();
+    auto argv = new Local<Value>[argc];
+    auto ptr = &data.message;
+    unsigned i = 0;
+    while (ptr) {
+        switch (ptr->type) {
+        case AsyncCallback::NUMBER:
+            argv[i] = Number::New(isolate, *reinterpret_cast<double*>(ptr->payload));
+            break;
+        case AsyncCallback::INTEGER:
+            argv[i] = Integer::New(isolate, *reinterpret_cast<int*>(ptr->payload));
+            break;
+        case AsyncCallback::JSON:
+            argv[i] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload)));
+            break;
+        case AsyncCallback::STRING:
+            argv[i] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload));
+            break;
+        default:
+            argv[i] = Undefined(isolate);
+            break;
+        }
+        ++i;
+        ptr = ptr->next();
     }
 
     TryCatch try_catch;
@@ -191,12 +198,15 @@ void NodeAsyncCallback::operator()(const Data& data)
             node::FatalException(isolate, try_catch);
         }
         mStore.Reset();
+        delete[] argv;
         return;
     }
 
     auto val = store->Get(String::NewFromUtf8(isolate, data.event.c_str()));
-    if (!val->IsArray())
+    if (!val->IsArray()) {
+        delete[] argv;
         return;
+    }
     Local<Array> array = Local<Array>::Cast(val);
     for (uint32_t i = 0; i < array->Length(); ++i) {
         Local<Value> f = array->Get(i);
@@ -207,6 +217,7 @@ void NodeAsyncCallback::operator()(const Data& data)
             }
         }
     }
+    delete[] argv;
 }
 
 NodeAsyncCallback::NodeAsyncCallback()

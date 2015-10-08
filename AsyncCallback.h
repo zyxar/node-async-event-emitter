@@ -42,6 +42,7 @@ public:
         Argument(const Argument& rhs);
         Argument& operator=(const Argument& rhs);
         const Argument* next() const;
+        size_t size() const;
 
     private:
         std::atomic<uint32_t>* refcnt;
