@@ -175,6 +175,8 @@ void NodeAsyncCallback::operator()(const Data& data)
         argv[0] = Integer::New(isolate, *reinterpret_cast<int*>(data.message.payload));
         break;
     case AsyncCallback::JSON:
+        argv[0] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(data.message.payload)));
+        break;
     case AsyncCallback::STRING:
         argv[0] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(data.message.payload));
         break;
