@@ -50,8 +50,13 @@ public:
     };
     virtual bool notify(const std::string& event, const Argument&) = 0; // event
     virtual bool operator()(const Argument&) = 0; // callback
-    template <typename... Arg>
-    bool call(Arg... args);
+    template <typename... Arguments>
+    bool call(const std::string& event, Arguments... args)
+    {
+        Argument arg{args...};
+        return notify(event, arg);
+    };
+private:
 };
 
 } // namespace cross
