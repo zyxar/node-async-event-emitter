@@ -41,9 +41,9 @@ AsyncCallback::Message::~Message()
         default:
             return;
         }
+        if (nextptr)
+            delete nextptr;
     }
-    if (nextptr)
-        delete nextptr;
 }
 
 AsyncCallback::Message::Message()

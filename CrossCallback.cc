@@ -79,7 +79,7 @@ void CrossCallbackWrap::Emit(const FunctionCallbackInfo<Value>& args)
     CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
     std::string event = std::string(*String::Utf8Value(args[0]->ToString()));
     std::string data = std::string(*String::Utf8Value(args[1]->ToString()));
-    n->call<std::string>(event, data);
+    n->emit<std::string>(event, data);
 }
 
 void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& args)

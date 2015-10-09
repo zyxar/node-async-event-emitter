@@ -42,22 +42,48 @@ public:
         Message(const Message& rhs);
         Message& operator=(const Message& rhs);
         const Message* next() const;
+        void next(Message* p) { nextptr = p; }
         size_t size() const;
 
     private:
         std::atomic<uint32_t>* refcnt;
         Message* nextptr;
     };
+
     virtual bool notify(const std::string& event, const Message&) = 0; // event
     virtual bool operator()(const Message&) = 0; // callback
-    template <typename... Arguments>
-    bool call(const std::string& event, Arguments... args)
-    {
-        Message arg{ args... };
-        return notify(event, arg);
-    };
 
-private:
+    template <typename... Arguments>
+    bool emit(const std::string& event, const Arguments&... args)
+    {
+        const unsigned size = sizeof...(Arguments);
+        Message m[size] = { args... };
+        unsigned i = 1;
+        Message* ptr = &m[0];
+        while (i < size) {
+            auto p = new Message{ m[i] };
+            ptr->next(p);
+            ptr = p;
+            ++i;
+        }
+        return notify(event, m[0]);
+    }
+
+    template <typename... Arguments>
+    bool call(const Arguments&... args)
+    {
+        const unsigned size = sizeof...(Arguments);
+        Message m[size] = { args... };
+        unsigned i = 1;
+        Message* ptr = &m[0];
+        while (i < size) {
+            auto p = new Message{ m[i] };
+            ptr->next(p);
+            ptr = p;
+            ++i;
+        }
+        return (*this)(m[0]);
+    }
 };
 
 } // namespace cross
