@@ -1,3 +1,6 @@
+- v0.1.0:
+  variadic functions: emit() and call() in AsyncCallback{};
+
 - v0.0.3:
   Generic Argument;
 
