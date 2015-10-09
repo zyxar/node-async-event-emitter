@@ -24,38 +24,39 @@ class AsyncCallback {
 public:
     AsyncCallback();
     virtual ~AsyncCallback();
-    enum DataType {
-        UNDEFINED,
-        STRING,
-        JSON,
-        NUMBER,
-        INTEGER,
-    };
-    struct Argument {
-        DataType type;
+    struct Message {
+        enum Type {
+            UNDEFINED,
+            STRING,
+            JSON,
+            NUMBER,
+            INTEGER,
+        };
+        Type type;
         uintptr_t payload;
-        virtual ~Argument();
-        Argument();
-        Argument(const std::string& rhs, DataType t = STRING);
-        Argument(double rhs);
-        Argument(int rhs);
-        Argument(const Argument& rhs);
-        Argument& operator=(const Argument& rhs);
-        const Argument* next() const;
+        virtual ~Message();
+        Message();
+        Message(const std::string& rhs, Type t = STRING);
+        Message(double rhs);
+        Message(int rhs);
+        Message(const Message& rhs);
+        Message& operator=(const Message& rhs);
+        const Message* next() const;
         size_t size() const;
 
     private:
         std::atomic<uint32_t>* refcnt;
-        Argument* nextptr;
+        Message* nextptr;
     };
-    virtual bool notify(const std::string& event, const Argument&) = 0; // event
-    virtual bool operator()(const Argument&) = 0; // callback
+    virtual bool notify(const std::string& event, const Message&) = 0; // event
+    virtual bool operator()(const Message&) = 0; // callback
     template <typename... Arguments>
     bool call(const std::string& event, Arguments... args)
     {
-        Argument arg{args...};
+        Message arg{ args... };
         return notify(event, arg);
     };
+
 private:
 };
 

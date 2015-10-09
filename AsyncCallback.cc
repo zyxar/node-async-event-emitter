@@ -20,7 +20,7 @@ namespace cross {
 AsyncCallback::AsyncCallback() {}
 AsyncCallback::~AsyncCallback() {}
 
-AsyncCallback::Argument::~Argument()
+AsyncCallback::Message::~Message()
 {
     --(*refcnt);
     if ((*refcnt) == 0) {
@@ -46,7 +46,7 @@ AsyncCallback::Argument::~Argument()
         delete nextptr;
 }
 
-AsyncCallback::Argument::Argument()
+AsyncCallback::Message::Message()
     : type{ UNDEFINED }
     , payload{ 0 }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -63,7 +63,7 @@ static const char* createString(const std::string& s)
     return r;
 }
 
-AsyncCallback::Argument::Argument(const std::string& rhs, DataType t)
+AsyncCallback::Message::Message(const std::string& rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
     , payload{ reinterpret_cast<uintptr_t>(createString(rhs)) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -71,7 +71,7 @@ AsyncCallback::Argument::Argument(const std::string& rhs, DataType t)
 {
 }
 
-AsyncCallback::Argument::Argument(double rhs)
+AsyncCallback::Message::Message(double rhs)
     : type{ NUMBER }
     , payload{ reinterpret_cast<uintptr_t>(new double{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -79,7 +79,7 @@ AsyncCallback::Argument::Argument(double rhs)
 {
 }
 
-AsyncCallback::Argument::Argument(int rhs)
+AsyncCallback::Message::Message(int rhs)
     : type{ INTEGER }
     , payload{ reinterpret_cast<uintptr_t>(new int{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -87,7 +87,7 @@ AsyncCallback::Argument::Argument(int rhs)
 {
 }
 
-AsyncCallback::Argument::Argument(const Argument& rhs)
+AsyncCallback::Message::Message(const Message& rhs)
     : type{ rhs.type }
     , payload{ rhs.payload }
     , refcnt{ rhs.refcnt }
@@ -101,7 +101,7 @@ AsyncCallback::Argument::Argument(const Argument& rhs)
         ++(*refcnt);
 }
 
-AsyncCallback::Argument& AsyncCallback::Argument::operator=(const Argument& rhs)
+AsyncCallback::Message& AsyncCallback::Message::operator=(const Message& rhs)
 {
     if (this == &rhs)
         return *this;
@@ -117,12 +117,12 @@ AsyncCallback::Argument& AsyncCallback::Argument::operator=(const Argument& rhs)
     return *this;
 }
 
-const AsyncCallback::Argument* AsyncCallback::Argument::next() const
+const AsyncCallback::Message* AsyncCallback::Message::next() const
 {
     return nextptr;
 }
 
-size_t AsyncCallback::Argument::size() const
+size_t AsyncCallback::Message::size() const
 {
     if (!nextptr)
         return 1;

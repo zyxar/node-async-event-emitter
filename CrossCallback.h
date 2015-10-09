@@ -29,14 +29,14 @@ public:
     explicit UvAsyncCallback();
     explicit UvAsyncCallback(uv_loop_t*);
     virtual ~UvAsyncCallback();
-    virtual bool notify(const std::string& event, const Argument& data);
-    virtual bool operator()(const Argument& data) { return notify("", data); }
+    virtual bool notify(const std::string& event, const Message& message);
+    virtual bool operator()(const Message& message) { return notify("", message); }
     virtual size_t size();
 
 protected:
     struct Data {
         std::string event;
-        Argument message;
+        Message message;
     };
     virtual void operator()(const Data& data) = 0;
 

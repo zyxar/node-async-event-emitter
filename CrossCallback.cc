@@ -171,16 +171,16 @@ void NodeAsyncCallback::operator()(const Data& data)
     unsigned i = 0;
     while (ptr) {
         switch (ptr->type) {
-        case AsyncCallback::NUMBER:
+        case AsyncCallback::Message::NUMBER:
             argv[i] = Number::New(isolate, *reinterpret_cast<double*>(ptr->payload));
             break;
-        case AsyncCallback::INTEGER:
+        case AsyncCallback::Message::INTEGER:
             argv[i] = Integer::New(isolate, *reinterpret_cast<int*>(ptr->payload));
             break;
-        case AsyncCallback::JSON:
+        case AsyncCallback::Message::JSON:
             argv[i] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload)));
             break;
-        case AsyncCallback::STRING:
+        case AsyncCallback::Message::STRING:
             argv[i] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload));
             break;
         default:
@@ -278,12 +278,12 @@ size_t UvAsyncCallback::size()
 }
 
 // other thread
-bool UvAsyncCallback::notify(const std::string& event, const Argument& data)
+bool UvAsyncCallback::notify(const std::string& event, const Message& message)
 {
     if (uv_is_active(reinterpret_cast<uv_handle_t*>(mUvHandle))) {
         {
             std::lock_guard<std::mutex> lock(mLock);
-            mBuffer.push(Data{ event, data });
+            mBuffer.push(Data{ event, message });
         }
         uv_async_send(mUvHandle);
         return true;
