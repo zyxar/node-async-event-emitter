@@ -1,3 +1,6 @@
+- v0.1.1:
+  AsyncCallback{}: call() <--> operator()()
+
 - v0.1.0:
   variadic functions: emit() and call() in AsyncCallback{};
 

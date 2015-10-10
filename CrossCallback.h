@@ -30,7 +30,6 @@ public:
     explicit UvAsyncCallback(uv_loop_t*);
     virtual ~UvAsyncCallback();
     virtual bool notify(const std::string& event, const Message& message);
-    virtual bool operator()(const Message& message) { return notify("", message); }
     virtual size_t size();
 
 protected:

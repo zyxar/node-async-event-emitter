@@ -51,7 +51,7 @@ public:
     };
 
     virtual bool notify(const std::string& event, const Message&) = 0; // event
-    virtual bool operator()(const Message&) = 0; // callback
+    virtual bool call(const Message& message) { return notify("", message); } // callback
 
     template <typename... Arguments>
     bool emit(const std::string& event, const Arguments&... args)
@@ -70,7 +70,7 @@ public:
     }
 
     template <typename... Arguments>
-    bool call(const Arguments&... args)
+    bool operator()(const Arguments&... args)
     {
         const unsigned size = sizeof...(Arguments);
         Message m[size] = { args... };
@@ -82,7 +82,7 @@ public:
             ptr = p;
             ++i;
         }
-        return (*this)(m[0]);
+        return this->call(m[0]);
     }
 };
 
