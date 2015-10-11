@@ -1,4 +1,8 @@
 ##v0.1.2:
+  - able to callback with const char*;
+  - new examples;
+
+##v0.1.2:
   - remove trailing newline for index.js output;
 
 ##v0.1.1:

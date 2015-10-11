@@ -17,7 +17,6 @@
 
 #include "AsyncCallback.h"
 
-#include <memory>
 #include <mutex>
 #include <node.h>
 #include <node_object_wrap.h>
