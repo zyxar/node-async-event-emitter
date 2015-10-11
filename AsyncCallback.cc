@@ -54,18 +54,17 @@ AsyncCallback::Message::Message()
 {
 }
 
-static const char* createString(const std::string& s)
+AsyncCallback::Message::Message(const char* rhs, Type t)
+    : type{ t == JSON ? JSON : STRING }
+    , payload{ reinterpret_cast<uintptr_t>(strdup(rhs)) }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
 {
-    size_t len = s.size() + 1;
-    char* r = new char[len];
-    memcpy(r, s.c_str(), len - 1);
-    r[len - 1] = 0;
-    return r;
 }
 
 AsyncCallback::Message::Message(const std::string& rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
-    , payload{ reinterpret_cast<uintptr_t>(createString(rhs)) }
+    , payload{ reinterpret_cast<uintptr_t>(rhs.c_str()) }
     , refcnt{ new std::atomic<uint32_t>(1) }
     , nextptr{ nullptr }
 {

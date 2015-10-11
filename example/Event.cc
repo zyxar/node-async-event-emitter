@@ -32,7 +32,7 @@ private:
             if (std::chrono::duration_cast<std::chrono::microseconds>(now - start).count() > 1000000)
                 break;
             if (mCallback)
-                (*mCallback.get())(1, 2, 3.01f);
+                (*mCallback.get())("WOW!", 1, 0.01f);
             usleep(10000);
         }
     }

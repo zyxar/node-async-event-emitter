@@ -36,6 +36,7 @@ public:
         uintptr_t payload;
         virtual ~Message();
         Message();
+        Message(const char* rhs, Type t = STRING);
         Message(const std::string& rhs, Type t = STRING);
         Message(double rhs);
         Message(int rhs);
