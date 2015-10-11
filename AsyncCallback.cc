@@ -64,7 +64,7 @@ AsyncCallback::Message::Message(const char* rhs, Type t)
 
 AsyncCallback::Message::Message(const std::string& rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
-    , payload{ reinterpret_cast<uintptr_t>(rhs.c_str()) }
+    , payload{ reinterpret_cast<uintptr_t>(strdup(rhs.c_str())) }
     , refcnt{ new std::atomic<uint32_t>(1) }
     , nextptr{ nullptr }
 {

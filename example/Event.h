@@ -1,10 +1,9 @@
 #ifndef Event_h
 #define Event_h
 
-#include <node.h>
-#include <node_object_wrap.h>
+#include <CrossCallback.h>
 class Runner;
-class Event : public node::ObjectWrap {
+class Event : public CrossCallbackWrap {
 public:
     Event()
         : r{ nullptr }
@@ -19,6 +18,7 @@ private:
     static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Close(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void Run(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void Emit(const v8::FunctionCallbackInfo<v8::Value>& args);
 };
 
 #endif

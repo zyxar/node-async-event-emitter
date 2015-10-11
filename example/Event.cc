@@ -1,6 +1,5 @@
 #include "Event.h"
 #include <chrono>
-#include <CrossCallback.h>
 #include <boost/thread.hpp>
 #include <memory>
 
@@ -32,7 +31,7 @@ private:
             if (std::chrono::duration_cast<std::chrono::microseconds>(now - start).count() > 1000000)
                 break;
             if (mCallback)
-                (*mCallback.get())("WOW!", 1, 0.01f);
+                (*mCallback)("WOW!", 1, 0.01f);
             usleep(10000);
         }
     }
@@ -48,8 +47,10 @@ void Event::Init(Local<Object> exports)
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
     tpl->SetClassName(String::NewFromUtf8(isolate, "Event"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    SETUP_CROSSCALLBACK_PROTOTYPE_METHODS(tpl);
     NODE_SET_PROTOTYPE_METHOD(tpl, "run", Run);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "emit", Emit);
     constructor.Reset(isolate, tpl->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "Event"), tpl->GetFunction());
 }
@@ -95,4 +96,16 @@ void Event::Close(const v8::FunctionCallbackInfo<v8::Value>& args)
         delete n->r;
         n->r = nullptr;
     }
+}
+
+void Event::Emit(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+    if (args.Length() < 2 || !args[0]->IsString())
+        return;
+    Event* n = ObjectWrap::Unwrap<Event>(args.Holder());
+    std::string event = std::string(*String::Utf8Value(args[0]->ToString()));
+    std::string data = std::string(*String::Utf8Value(args[1]->ToString()));
+    n->emit<std::string>(event, data);
 }
