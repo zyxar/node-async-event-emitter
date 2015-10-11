@@ -1,4 +1,8 @@
-##v0.1.2:
+##v0.1.4:
+  - fixes AsyncCallback::Message::Message;
+  - comprehensive examples;
+
+##v0.1.3:
   - able to callback with const char*;
   - new examples;
 
