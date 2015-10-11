@@ -1,1 +1,1 @@
-console.log(require('path').relative('.', __dirname));
+process.stdout.write(require('path').relative('.', __dirname));

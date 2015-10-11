@@ -1,3 +1,6 @@
+- v0.1.2:
+  remove trailing newline for index.js output;
+
 - v0.1.1:
   AsyncCallback{}: call() <--> operator()()
 
