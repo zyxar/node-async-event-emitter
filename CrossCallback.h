@@ -51,8 +51,8 @@ private:
 
 class NodeAsyncCallback : public UvAsyncCallback {
 public:
-    static std::shared_ptr<NodeAsyncCallback> New(v8::Isolate*, const v8::Local<v8::Function>&);
-    static std::shared_ptr<NodeAsyncCallback> New(const v8::Local<v8::Function>&);
+    static NodeAsyncCallback* New(v8::Isolate*, const v8::Local<v8::Function>&);
+    static NodeAsyncCallback* New(const v8::Local<v8::Function>&);
     virtual ~NodeAsyncCallback();
 
 protected:

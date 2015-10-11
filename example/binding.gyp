@@ -2,6 +2,7 @@
   'targets': [{
     'target_name': 'addon',
     'sources': [ 'addon.cc',
+      'Event.cc',
       "<!(node -e \"require('..')\")/AsyncCallback.cc",
       "<!(node -e \"require('..')\")/CrossCallback.cc"
     ],
@@ -17,12 +18,14 @@
             '-Wno-unused-private-field',
           ]
         },
+        'libraries': ['-lboost_thread-mt'],
       }, { # OS!="mac"
         'cflags!':    ['-fno-exceptions'],
         'cflags':     ['-D__STDC_CONSTANT_MACROS'],
         'cflags_cc':  ['-Wall', '-O3', '-g' , '-std=c++11', '-fexceptions'],
         'cflags_cc!': ['-fno-exceptions'],
         'cflags_cc!': ['-fno-rtti'],
+        'libraries': ['-lboost_thread'],
       }],
     ]
   }]

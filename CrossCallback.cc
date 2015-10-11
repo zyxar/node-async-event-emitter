@@ -147,12 +147,12 @@ void CrossCallbackWrap::Clear(const FunctionCallbackInfo<Value>& args)
 
 // ------------------------NodeAsyncCallback-----------------------------------
 
-std::shared_ptr<NodeAsyncCallback> NodeAsyncCallback::New(Isolate* isolate, const Local<Function>& f)
+NodeAsyncCallback* NodeAsyncCallback::New(Isolate* isolate, const Local<Function>& f)
 {
-    return std::shared_ptr<NodeAsyncCallback>(new NodeAsyncCallback(isolate, f));
+    return (new NodeAsyncCallback(isolate, f));
 }
 
-std::shared_ptr<NodeAsyncCallback> NodeAsyncCallback::New(const Local<Function>& f)
+NodeAsyncCallback* NodeAsyncCallback::New(const Local<Function>& f)
 {
     return New(Isolate::GetCurrent(), f);
 }
