@@ -261,14 +261,14 @@ UvAsyncCallback::~UvAsyncCallback()
 // main thread
 void UvAsyncCallback::process()
 {
-    Data data;
     while (!mBuffer.empty()) {
         {
-            std::lock_guard<std::mutex> lock(mLock);
-            data = mBuffer.front();
+            std::unique_lock<std::mutex> lock(mLock);
+            Data data = mBuffer.front();
             mBuffer.pop();
+            lock.unlock();
+            (*this)(data);
         }
-        (*this)(data);
     }
 }
 

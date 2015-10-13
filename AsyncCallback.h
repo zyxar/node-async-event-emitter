@@ -35,7 +35,7 @@ public:
         Type type;
         uintptr_t payload;
         virtual ~Message();
-        Message();
+        Message() = delete;
         Message(const char* rhs, Type t = STRING);
         Message(const std::string& rhs, Type t = STRING);
         Message(double rhs);

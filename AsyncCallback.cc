@@ -46,14 +46,6 @@ AsyncCallback::Message::~Message()
     }
 }
 
-AsyncCallback::Message::Message()
-    : type{ UNDEFINED }
-    , payload{ 0 }
-    , refcnt{ new std::atomic<uint32_t>(1) }
-    , nextptr{ nullptr }
-{
-}
-
 AsyncCallback::Message::Message(const char* rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
     , payload{ reinterpret_cast<uintptr_t>(strdup(rhs)) }
