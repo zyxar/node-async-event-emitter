@@ -1,3 +1,6 @@
+##v0.1.5:
+  - remove AsyncCallback::Message default constrcutor;
+
 ##v0.1.4:
   - fixes AsyncCallback::Message::Message;
   - comprehensive examples;
