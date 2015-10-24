@@ -3,3 +3,5 @@ examples/
 .travis.yml
 .npmignore
 Makefile
+*.sublime-project
+*.sublime-workspace

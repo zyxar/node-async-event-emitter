@@ -63,8 +63,7 @@ void Event::New(const v8::FunctionCallbackInfo<v8::Value>& args)
         Event* n = new Event();
         n->Wrap(args.This());
         args.GetReturnValue().Set(args.This());
-    }
-    else {
+    } else {
         const int argc = 1;
         Local<Value> argv[argc] = { args[0] };
         Local<Function> cons = Local<Function>::New(isolate, constructor);

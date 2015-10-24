@@ -53,8 +53,7 @@ void CrossCallbackWrap::New(const FunctionCallbackInfo<Value>& args)
         CrossCallbackWrap* n = new CrossCallbackWrap();
         n->Wrap(args.This());
         args.GetReturnValue().Set(args.This());
-    }
-    else {
+    } else {
         const int argc = 1;
         Local<Value> argv[argc] = { args[0] };
         Local<Function> cons = Local<Function>::New(isolate, constructor);
@@ -94,8 +93,7 @@ void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& args)
     if (val->IsArray()) {
         Local<Array> array = Local<Array>::Cast(val);
         array->Set(array->Length(), args[1]);
-    }
-    else {
+    } else {
         Local<Array> array = Array::New(isolate);
         array->Set(0, args[1]);
         Local<Object>::New(isolate, n->mStore)->Set(args[0], array);
@@ -136,8 +134,7 @@ void CrossCallbackWrap::Clear(const FunctionCallbackInfo<Value>& args)
     if (args.Length() == 0) {
         n->mStore.Reset(isolate, Object::New(isolate));
         return;
-    }
-    else if (args[0]->IsString()) {
+    } else if (args[0]->IsString()) {
         auto val = store->Get(args[0]);
         if (!val->IsArray())
             return;
