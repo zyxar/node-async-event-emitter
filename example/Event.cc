@@ -1,6 +1,6 @@
 #include "Event.h"
-#include <chrono>
 #include <boost/thread.hpp>
+#include <chrono>
 #include <memory>
 
 using namespace v8;
@@ -43,7 +43,7 @@ Persistent<Function> Event::constructor;
 
 void Event::Init(Local<Object> exports)
 {
-    Isolate* isolate = Isolate::GetCurrent();
+    Isolate* isolate = exports->GetIsolate();
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
     tpl->SetClassName(String::NewFromUtf8(isolate, "Event"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -55,56 +55,50 @@ void Event::Init(Local<Object> exports)
     exports->Set(String::NewFromUtf8(isolate, "Event"), tpl->GetFunction());
 }
 
-void Event::New(const v8::FunctionCallbackInfo<v8::Value>& args)
+void Event::New(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.IsConstructCall()) {
+    Isolate* isolate = arguments.GetIsolate();
+    if (arguments.IsConstructCall()) {
         Event* n = new Event();
-        n->Wrap(args.This());
-        args.GetReturnValue().Set(args.This());
+        n->Wrap(arguments.This());
+        arguments.GetReturnValue().Set(arguments.This());
     } else {
         const int argc = 1;
-        Local<Value> argv[argc] = { args[0] };
+        Local<Value> argv[argc] = { arguments[0] };
         Local<Function> cons = Local<Function>::New(isolate, constructor);
-        args.GetReturnValue().Set(cons->NewInstance(argc, argv));
+        arguments.GetReturnValue().Set(cons->NewInstance(argc, argv));
     }
 }
 
-void Event::Run(const v8::FunctionCallbackInfo<v8::Value>& args)
+void Event::Run(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.Length() == 0 || !args[0]->IsFunction()) {
+    Isolate* isolate = arguments.GetIsolate();
+    if (arguments.Length() == 0 || !arguments[0]->IsFunction()) {
         isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));
         return;
     }
-    Event* n = ObjectWrap::Unwrap<Event>(args.Holder());
+    Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     if (n->r)
         delete n->r;
-    n->r = new Runner(NodeAsyncCallback::New(Local<Function>::Cast(args[0])));
+    n->r = new Runner(NodeAsyncCallback::New(Local<Function>::Cast(arguments[0])));
     n->r->run();
 }
 
-void Event::Close(const v8::FunctionCallbackInfo<v8::Value>& args)
+void Event::Close(const v8::FunctionCallbackInfo<v8::Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    Event* n = ObjectWrap::Unwrap<Event>(args.Holder());
+    Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     if (n->r) {
         delete n->r;
         n->r = nullptr;
     }
 }
 
-void Event::Emit(const FunctionCallbackInfo<Value>& args)
+void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.Length() < 2 || !args[0]->IsString())
+    if (arguments.Length() < 2 || !arguments[0]->IsString())
         return;
-    Event* n = ObjectWrap::Unwrap<Event>(args.Holder());
-    std::string event = std::string(*String::Utf8Value(args[0]->ToString()));
-    std::string data = std::string(*String::Utf8Value(args[1]->ToString()));
+    Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
+    std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
+    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
     n->emit<std::string>(event, data);
 }

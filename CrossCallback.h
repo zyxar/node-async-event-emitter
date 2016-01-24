@@ -79,12 +79,12 @@ protected:
     virtual ~CrossCallbackWrap();
 
 private:
-    static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Self(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Emit(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void On(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Off(const v8::FunctionCallbackInfo<v8::Value>& args);
-    static void Clear(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void New(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void Self(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void Emit(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void On(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void Off(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void Clear(const v8::FunctionCallbackInfo<v8::Value>&);
 
     static v8::Persistent<v8::Function> constructor;
 };

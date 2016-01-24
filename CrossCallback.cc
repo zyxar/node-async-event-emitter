@@ -28,7 +28,7 @@ CrossCallbackWrap::~CrossCallbackWrap()
 
 void CrossCallbackWrap::Init(Local<Object> exports)
 {
-    Isolate* isolate = Isolate::GetCurrent();
+    Isolate* isolate = exports->GetIsolate();
 
     // Prepare constructor template
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
@@ -44,77 +44,68 @@ void CrossCallbackWrap::Init(Local<Object> exports)
     exports->Set(String::NewFromUtf8(isolate, "CrossCallback"), tpl->GetFunction());
 }
 
-void CrossCallbackWrap::New(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::New(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-
-    if (args.IsConstructCall()) {
+    Isolate* isolate = arguments.GetIsolate();
+    if (arguments.IsConstructCall()) {
         CrossCallbackWrap* n = new CrossCallbackWrap();
-        n->Wrap(args.This());
-        args.GetReturnValue().Set(args.This());
+        n->Wrap(arguments.This());
+        arguments.GetReturnValue().Set(arguments.This());
     } else {
-        const int argc = 1;
-        Local<Value> argv[argc] = { args[0] };
+        Local<Value> argv[] = { arguments[0] };
         Local<Function> cons = Local<Function>::New(isolate, constructor);
-        args.GetReturnValue().Set(cons->NewInstance(argc, argv));
+        arguments.GetReturnValue().Set(cons->NewInstance(1, argv));
     }
 }
 
-void CrossCallbackWrap::Self(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::Self(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
-    args.GetReturnValue().Set(n->mStore);
+    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    arguments.GetReturnValue().Set(n->mStore);
 }
 
-void CrossCallbackWrap::Emit(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::Emit(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.Length() < 2 || !args[0]->IsString())
+    if (arguments.Length() < 2 || !arguments[0]->IsString())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
-    std::string event = std::string(*String::Utf8Value(args[0]->ToString()));
-    std::string data = std::string(*String::Utf8Value(args[1]->ToString()));
+    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
+    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
     n->emit<std::string>(event, data);
 }
 
-void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsFunction())
+    Isolate* isolate = arguments.GetIsolate();
+    if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
+    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
-    auto val = store->Get(args[0]);
+    auto val = store->Get(arguments[0]);
     if (val->IsArray()) {
         Local<Array> array = Local<Array>::Cast(val);
-        array->Set(array->Length(), args[1]);
+        array->Set(array->Length(), arguments[1]);
     } else {
         Local<Array> array = Array::New(isolate);
-        array->Set(0, args[1]);
-        Local<Object>::New(isolate, n->mStore)->Set(args[0], array);
+        array->Set(0, arguments[1]);
+        Local<Object>::New(isolate, n->mStore)->Set(arguments[0], array);
     }
 }
 
-void CrossCallbackWrap::Off(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::Off(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    if (args.Length() < 2 || !args[0]->IsString() || !args[1]->IsFunction())
+    Isolate* isolate = arguments.GetIsolate();
+    if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
+    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
-    auto val = store->Get(args[0]);
+    auto val = store->Get(arguments[0]);
     if (!val->IsArray())
         return;
     Local<Array> array = Local<Array>::Cast(val);
     uint32_t new_length = array->Length();
     for (uint32_t i = 0; i < new_length; ++i) {
-        if (array->Get(i)->Equals(args[1])) {
+        if (array->Get(i)->Equals(arguments[1])) {
             for (uint32_t j = i; j < new_length; ++j) {
                 array->Set(j, array->Get(j + 1));
             }
@@ -125,20 +116,19 @@ void CrossCallbackWrap::Off(const FunctionCallbackInfo<Value>& args)
     }
 }
 
-void CrossCallbackWrap::Clear(const FunctionCallbackInfo<Value>& args)
+void CrossCallbackWrap::Clear(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(args.Holder());
+    Isolate* isolate = arguments.GetIsolate();
+    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
-    if (args.Length() == 0) {
+    if (arguments.Length() == 0) {
         n->mStore.Reset(isolate, Object::New(isolate));
         return;
-    } else if (args[0]->IsString()) {
-        auto val = store->Get(args[0]);
+    } else if (arguments[0]->IsString()) {
+        auto val = store->Get(arguments[0]);
         if (!val->IsArray())
             return;
-        store->Delete(args[0]);
+        store->Delete(arguments[0]);
     }
 }
 
