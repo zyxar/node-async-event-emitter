@@ -1,6 +1,6 @@
 {
   "name": "crosscallback",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Asynchronous Across Threads Callback and Event handling for Node.js",
   "repository": {
     "type": "git",

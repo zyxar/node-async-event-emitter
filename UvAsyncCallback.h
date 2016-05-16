@@ -17,9 +17,8 @@
 
 #include "Argument.h"
 #include "AsyncCallback.h"
-
 #include <mutex>
-#include <queue>
+#include <deque>
 #include <uv.h>
 
 namespace cross {
@@ -30,6 +29,7 @@ public:
     explicit UvAsyncCallback(uv_loop_t*);
     virtual ~UvAsyncCallback();
     virtual bool notify(const std::string& event, const Argument& argument);
+    virtual bool prompt(const std::string& event, const Argument& argument);
     virtual size_t size();
 
 protected:
@@ -42,7 +42,7 @@ protected:
 private:
     uv_async_t* mUvHandle;
     std::mutex mLock;
-    std::queue<Data> mBuffer;
+    std::deque<Data> mBuffer;
 
     void process();
     static void closeCallback(uv_handle_t*);

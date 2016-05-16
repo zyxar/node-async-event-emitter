@@ -23,10 +23,11 @@ namespace cross {
 
 class AsyncCallback {
 public:
-    AsyncCallback(){};
-    virtual ~AsyncCallback(){};
+    AsyncCallback() {}
+    virtual ~AsyncCallback() {}
 
-    virtual bool notify(const std::string& event, const Argument&) = 0; // event
+    virtual bool notify(const std::string& event, const Argument&) = 0; // event, FIFO
+    virtual bool prompt(const std::string& event, const Argument&) = 0; // event, LIFO
     virtual bool call(const Argument& argument) { return notify("", argument); } // callback
 
     template <typename... ArgType>
@@ -43,6 +44,22 @@ public:
             ++i;
         }
         return notify(event, m[0]);
+    }
+
+    template <typename... ArgType>
+    bool urge(const std::string& event, const ArgType&... args)
+    {
+        const unsigned size = sizeof...(ArgType);
+        Argument m[size] = { args... };
+        unsigned i = 1;
+        Argument* ptr = &m[0];
+        while (i < size) {
+            auto p = new Argument{ m[i] };
+            ptr->next(p);
+            ptr = p;
+            ++i;
+        }
+        return prompt(event, m[0]);
     }
 
     template <typename... ArgType>

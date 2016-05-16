@@ -9,6 +9,10 @@ var abcHandler = function(v) {
   console.log('1:', v);
 };
 
+evt.on('alert', function (message) {
+  console.log('alert: ' + message);
+});
+
 evt.run(function (a, b, c) {
   console.log('[', typeof a, ']:', a);
   console.log('[', typeof b, ']:', b);
@@ -32,8 +36,31 @@ setTimeout(function() {
   evt.clearEventListener('abc');
   evt.clearEventListener();
   process.exit();
-}, 1500);
+}, 2000);
 
 setInterval(function() {
   evt.emit('abc', Math.random());
 }, 100);
+
+setTimeout(function() {
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.emit('alert', 'Notification');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+  evt.urge('alert', 'Prompt');
+}, 1200);

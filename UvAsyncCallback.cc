@@ -42,7 +42,7 @@ void UvAsyncCallback::process()
         {
             std::unique_lock<std::mutex> lock(mLock);
             Data data = mBuffer.front();
-            mBuffer.pop();
+            mBuffer.pop_front();
             lock.unlock();
             (*this)(data);
         }
@@ -60,7 +60,21 @@ bool UvAsyncCallback::notify(const std::string& event, const Argument& argument)
     if (uv_is_active(reinterpret_cast<uv_handle_t*>(mUvHandle))) {
         {
             std::lock_guard<std::mutex> lock(mLock);
-            mBuffer.push(Data{ event, argument });
+            mBuffer.push_back(Data{ event, argument });
+        }
+        uv_async_send(mUvHandle);
+        return true;
+    }
+    return false;
+}
+
+// other thread
+bool UvAsyncCallback::prompt(const std::string& event, const Argument& argument)
+{
+    if (uv_is_active(reinterpret_cast<uv_handle_t*>(mUvHandle))) {
+        {
+            std::lock_guard<std::mutex> lock(mLock);
+            mBuffer.push_front(Data{ event, argument });
         }
         uv_async_send(mUvHandle);
         return true;

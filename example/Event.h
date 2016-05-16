@@ -2,6 +2,7 @@
 #define Event_h
 
 #include <NodeAsyncCallback.h>
+
 class Runner;
 class Event : public cross::AsyncCallbackObjectWrap {
 public:
@@ -19,6 +20,7 @@ private:
     static void Close(const v8::FunctionCallbackInfo<v8::Value>&);
     static void Run(const v8::FunctionCallbackInfo<v8::Value>&);
     static void Emit(const v8::FunctionCallbackInfo<v8::Value>&);
+    static void Urge(const v8::FunctionCallbackInfo<v8::Value>&);
 };
 
 #endif

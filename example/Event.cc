@@ -32,7 +32,7 @@ private:
                 break;
             if (mCallback)
                 (*mCallback)("WOW!", 1, 0.01f);
-            usleep(10000);
+            usleep(100);
         }
     }
     std::unique_ptr<cross::AsyncCallback> mCallback;
@@ -51,6 +51,7 @@ void Event::Init(Local<Object> exports)
     NODE_SET_PROTOTYPE_METHOD(tpl, "run", Run);
     NODE_SET_PROTOTYPE_METHOD(tpl, "close", Close);
     NODE_SET_PROTOTYPE_METHOD(tpl, "emit", Emit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "urge", Urge);
     constructor.Reset(isolate, tpl->GetFunction());
     exports->Set(String::NewFromUtf8(isolate, "Event"), tpl->GetFunction());
 }
@@ -101,4 +102,14 @@ void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
     std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
     n->emit<std::string>(event, data);
+}
+
+void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
+{
+    if (arguments.Length() < 2 || !arguments[0]->IsString())
+        return;
+    Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
+    std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
+    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
+    n->urge<std::string>(event, data);
 }

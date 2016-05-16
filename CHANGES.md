@@ -1,3 +1,8 @@
+##v0.2.0:
+  - rename cross::AsyncCallback::Message to cross::Argument;
+  - split CrossCallback into UvAsyncCallback, NodeAsyncCallback;
+  - support notification in emergency & simple demo;
+
 ##v0.1.5:
   - remove AsyncCallback::Message default constrcutor;
 
