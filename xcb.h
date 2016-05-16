@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef AsyncCallback_h
-#define AsyncCallback_h
+#ifndef xcb_h
+#define xcb_h
 
 #include "Argument.h"
 #include <atomic>
@@ -81,4 +81,4 @@ public:
 
 } // namespace cross
 
-#endif // AsyncCallback_h
+#endif // xcb_h

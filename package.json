@@ -1,10 +1,10 @@
 {
-  "name": "crosscallback",
+  "name": "xcb",
   "version": "0.2.0",
   "description": "Asynchronous Across Threads Callback and Event handling for Node.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zyxar/node-crosscallback.git"
+    "url": "https://github.com/zyxar/node-xcb.git"
   },
   "author": "zyxar <teamo@live.com>",
   "scripts": {
@@ -16,7 +16,7 @@
     "zyxar <teamo@live.com> (https://github.com/zyxar)"
   ],
   "bugs": {
-    "url": "https://github.com/zyxar/node-crosscallback/issues"
+    "url": "https://github.com/zyxar/node-xcb/issues"
   },
   "devDependencies": {
     "node-gyp": "~3.0.1"

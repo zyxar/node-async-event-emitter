@@ -1,4 +1,4 @@
-// Copyright 2015 Markus Tzoe
+// Copyright 2016 Markus Tzoe
 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #define UvAsyncCallback_h
 
 #include "Argument.h"
-#include "AsyncCallback.h"
+#include "xcb.h"
 #include <mutex>
 #include <deque>
 #include <uv.h>
