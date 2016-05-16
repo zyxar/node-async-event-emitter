@@ -15,6 +15,7 @@
 #ifndef AsyncCallback_h
 #define AsyncCallback_h
 
+#include "Argument.h"
 #include <atomic>
 #include <string>
 
@@ -22,47 +23,21 @@ namespace cross {
 
 class AsyncCallback {
 public:
-    AsyncCallback();
-    virtual ~AsyncCallback();
-    struct Message {
-        enum Type {
-            UNDEFINED,
-            STRING,
-            JSON,
-            NUMBER,
-            INTEGER,
-        };
-        Type type;
-        uintptr_t payload;
-        virtual ~Message();
-        Message() = delete;
-        Message(const char* rhs, Type t = STRING);
-        Message(const std::string& rhs, Type t = STRING);
-        Message(double rhs);
-        Message(int rhs);
-        Message(const Message& rhs);
-        Message& operator=(const Message& rhs);
-        const Message* next() const;
-        void next(Message* p) { nextptr = p; }
-        size_t size() const;
+    AsyncCallback(){};
+    virtual ~AsyncCallback(){};
 
-    private:
-        std::atomic<uint32_t>* refcnt;
-        Message* nextptr;
-    };
+    virtual bool notify(const std::string& event, const Argument&) = 0; // event
+    virtual bool call(const Argument& argument) { return notify("", argument); } // callback
 
-    virtual bool notify(const std::string& event, const Message&) = 0; // event
-    virtual bool call(const Message& message) { return notify("", message); } // callback
-
-    template <typename... Arguments>
-    bool emit(const std::string& event, const Arguments&... args)
+    template <typename... ArgType>
+    bool emit(const std::string& event, const ArgType&... args)
     {
-        const unsigned size = sizeof...(Arguments);
-        Message m[size] = { args... };
+        const unsigned size = sizeof...(ArgType);
+        Argument m[size] = { args... };
         unsigned i = 1;
-        Message* ptr = &m[0];
+        Argument* ptr = &m[0];
         while (i < size) {
-            auto p = new Message{ m[i] };
+            auto p = new Argument{ m[i] };
             ptr->next(p);
             ptr = p;
             ++i;
@@ -70,15 +45,15 @@ public:
         return notify(event, m[0]);
     }
 
-    template <typename... Arguments>
-    bool operator()(const Arguments&... args)
+    template <typename... ArgType>
+    bool operator()(const ArgType&... args)
     {
-        const unsigned size = sizeof...(Arguments);
-        Message m[size] = { args... };
+        const unsigned size = sizeof...(ArgType);
+        Argument m[size] = { args... };
         unsigned i = 1;
-        Message* ptr = &m[0];
+        Argument* ptr = &m[0];
         while (i < size) {
-            auto p = new Message{ m[i] };
+            auto p = new Argument{ m[i] };
             ptr->next(p);
             ptr = p;
             ++i;

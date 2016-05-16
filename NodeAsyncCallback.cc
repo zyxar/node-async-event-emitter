@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "CrossCallback.h"
+#include "NodeAsyncCallback.h"
 
 using namespace v8;
 
-Persistent<Function> CrossCallbackWrap::constructor;
-CrossCallbackWrap::CrossCallbackWrap()
+namespace cross {
+
+Persistent<Function> AsyncCallbackObjectWrap::constructor;
+AsyncCallbackObjectWrap::AsyncCallbackObjectWrap()
     : NodeAsyncCallback{}
 {
 }
 
-CrossCallbackWrap::~CrossCallbackWrap()
+AsyncCallbackObjectWrap::~AsyncCallbackObjectWrap()
 {
 }
 
-void CrossCallbackWrap::Init(Local<Object> exports)
+void AsyncCallbackObjectWrap::Init(Local<Object> exports)
 {
     Isolate* isolate = exports->GetIsolate();
 
@@ -44,11 +46,11 @@ void CrossCallbackWrap::Init(Local<Object> exports)
     exports->Set(String::NewFromUtf8(isolate, "CrossCallback"), tpl->GetFunction());
 }
 
-void CrossCallbackWrap::New(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::New(const FunctionCallbackInfo<Value>& arguments)
 {
     Isolate* isolate = arguments.GetIsolate();
     if (arguments.IsConstructCall()) {
-        CrossCallbackWrap* n = new CrossCallbackWrap();
+        AsyncCallbackObjectWrap* n = new AsyncCallbackObjectWrap();
         n->Wrap(arguments.This());
         arguments.GetReturnValue().Set(arguments.This());
     } else {
@@ -58,28 +60,28 @@ void CrossCallbackWrap::New(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void CrossCallbackWrap::Self(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::Self(const FunctionCallbackInfo<Value>& arguments)
 {
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
     arguments.GetReturnValue().Set(n->mStore);
 }
 
-void CrossCallbackWrap::Emit(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::Emit(const FunctionCallbackInfo<Value>& arguments)
 {
     if (arguments.Length() < 2 || !arguments[0]->IsString())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
     std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
     n->emit<std::string>(event, data);
 }
 
-void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::On(const FunctionCallbackInfo<Value>& arguments)
 {
     Isolate* isolate = arguments.GetIsolate();
     if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     auto val = store->Get(arguments[0]);
     if (val->IsArray()) {
@@ -92,12 +94,12 @@ void CrossCallbackWrap::On(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void CrossCallbackWrap::Off(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::Off(const FunctionCallbackInfo<Value>& arguments)
 {
     Isolate* isolate = arguments.GetIsolate();
     if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     auto val = store->Get(arguments[0]);
     if (!val->IsArray())
@@ -116,10 +118,10 @@ void CrossCallbackWrap::Off(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void CrossCallbackWrap::Clear(const FunctionCallbackInfo<Value>& arguments)
+void AsyncCallbackObjectWrap::Clear(const FunctionCallbackInfo<Value>& arguments)
 {
     Isolate* isolate = arguments.GetIsolate();
-    CrossCallbackWrap* n = ObjectWrap::Unwrap<CrossCallbackWrap>(arguments.Holder());
+    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     if (arguments.Length() == 0) {
         n->mStore.Reset(isolate, Object::New(isolate));
@@ -152,22 +154,22 @@ void NodeAsyncCallback::operator()(const Data& data)
     if (store.IsEmpty())
         return;
 
-    const unsigned argc = data.message.size();
+    const unsigned argc = data.argument.size();
     auto argv = new Local<Value>[argc];
-    auto ptr = &data.message;
+    auto ptr = &data.argument;
     unsigned i = 0;
     while (ptr) {
         switch (ptr->type) {
-        case AsyncCallback::Message::NUMBER:
+        case cross::Argument::NUMBER:
             argv[i] = Number::New(isolate, *reinterpret_cast<double*>(ptr->payload));
             break;
-        case AsyncCallback::Message::INTEGER:
+        case cross::Argument::INTEGER:
             argv[i] = Integer::New(isolate, *reinterpret_cast<int*>(ptr->payload));
             break;
-        case AsyncCallback::Message::JSON:
+        case cross::Argument::JSON:
             argv[i] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload)));
             break;
-        case AsyncCallback::Message::STRING:
+        case cross::Argument::STRING:
             argv[i] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload));
             break;
         default:
@@ -223,67 +225,4 @@ NodeAsyncCallback::~NodeAsyncCallback()
 {
     mStore.Reset();
 };
-
-// ------------------------UvAsyncCallback-------------------------------------
-
-UvAsyncCallback::UvAsyncCallback()
-{
-    mUvHandle = reinterpret_cast<uv_async_t*>(malloc(sizeof(uv_async_t)));
-    mUvHandle->data = this;
-    uv_async_init(uv_default_loop(), mUvHandle, UvAsyncCallback::callback);
-}
-
-UvAsyncCallback::UvAsyncCallback(uv_loop_t* loop)
-{
-    mUvHandle = reinterpret_cast<uv_async_t*>(malloc(sizeof(uv_async_t)));
-    mUvHandle->data = this;
-    uv_async_init(loop, mUvHandle, UvAsyncCallback::callback);
-}
-
-UvAsyncCallback::~UvAsyncCallback()
-{
-    uv_close(reinterpret_cast<uv_handle_t*>(mUvHandle), UvAsyncCallback::closeCallback);
-}
-
-// main thread
-void UvAsyncCallback::process()
-{
-    while (!mBuffer.empty()) {
-        {
-            std::unique_lock<std::mutex> lock(mLock);
-            Data data = mBuffer.front();
-            mBuffer.pop();
-            lock.unlock();
-            (*this)(data);
-        }
-    }
-}
-
-size_t UvAsyncCallback::size()
-{
-    return mBuffer.size();
-}
-
-// other thread
-bool UvAsyncCallback::notify(const std::string& event, const Message& message)
-{
-    if (uv_is_active(reinterpret_cast<uv_handle_t*>(mUvHandle))) {
-        {
-            std::lock_guard<std::mutex> lock(mLock);
-            mBuffer.push(Data{ event, message });
-        }
-        uv_async_send(mUvHandle);
-        return true;
-    }
-    return false;
-}
-
-void UvAsyncCallback::closeCallback(uv_handle_t* handle)
-{
-    free(handle);
-}
-
-void UvAsyncCallback::callback(uv_async_t* handle)
-{
-    reinterpret_cast<UvAsyncCallback*>(handle->data)->process();
 }

@@ -12,43 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef CrossCallback_h
-#define CrossCallback_h
+#ifndef NodeAsyncCallback_h
+#define NodeAsyncCallback_h
 
-#include "AsyncCallback.h"
-
-#include <mutex>
+#include "UvAsyncCallback.h"
 #include <node.h>
 #include <node_object_wrap.h>
-#include <queue>
-#include <uv.h>
 
-class UvAsyncCallback : public cross::AsyncCallback {
-public:
-    explicit UvAsyncCallback();
-    explicit UvAsyncCallback(uv_loop_t*);
-    virtual ~UvAsyncCallback();
-    virtual bool notify(const std::string& event, const Message& message);
-    virtual size_t size();
+namespace cross {
 
-protected:
-    struct Data {
-        std::string event;
-        Message message;
-    };
-    virtual void operator()(const Data& data) = 0;
-
-private:
-    uv_async_t* mUvHandle;
-    std::mutex mLock;
-    std::queue<Data> mBuffer;
-
-    void process();
-    static void closeCallback(uv_handle_t*);
-    static void callback(uv_async_t*);
-};
-
-class NodeAsyncCallback : public UvAsyncCallback {
+class NodeAsyncCallback : public ::cross::UvAsyncCallback {
 public:
     static NodeAsyncCallback* New(v8::Isolate*, const v8::Local<v8::Function>&);
     static NodeAsyncCallback* New(const v8::Local<v8::Function>&);
@@ -61,7 +34,7 @@ protected:
     v8::Persistent<v8::Object> mStore;
 };
 
-class CrossCallbackWrap : public node::ObjectWrap, public NodeAsyncCallback {
+class AsyncCallbackObjectWrap : public node::ObjectWrap, public NodeAsyncCallback {
 public:
     static void Init(v8::Local<v8::Object> exports);
     inline static void SETUP_CROSSCALLBACK_PROTOTYPE_METHODS(v8::Local<v8::FunctionTemplate> tmpl)
@@ -75,8 +48,8 @@ public:
     }
 
 protected:
-    explicit CrossCallbackWrap();
-    virtual ~CrossCallbackWrap();
+    explicit AsyncCallbackObjectWrap();
+    virtual ~AsyncCallbackObjectWrap();
 
 private:
     static void New(const v8::FunctionCallbackInfo<v8::Value>&);
@@ -88,5 +61,6 @@ private:
 
     static v8::Persistent<v8::Function> constructor;
 };
+}
 
-#endif // CrossCallback_h
+#endif // NodeAsyncCallback_h

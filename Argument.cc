@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "AsyncCallback.h"
+#include "Argument.h"
 #include <string.h>
 
 namespace cross {
 
-AsyncCallback::AsyncCallback() {}
-AsyncCallback::~AsyncCallback() {}
-
-AsyncCallback::Message::~Message()
+Argument::~Argument()
 {
     --(*refcnt);
     if ((*refcnt) == 0) {
@@ -46,7 +43,7 @@ AsyncCallback::Message::~Message()
     }
 }
 
-AsyncCallback::Message::Message(const char* rhs, Type t)
+Argument::Argument(const char* rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
     , payload{ reinterpret_cast<uintptr_t>(strdup(rhs)) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -54,7 +51,7 @@ AsyncCallback::Message::Message(const char* rhs, Type t)
 {
 }
 
-AsyncCallback::Message::Message(const std::string& rhs, Type t)
+Argument::Argument(const std::string& rhs, Type t)
     : type{ t == JSON ? JSON : STRING }
     , payload{ reinterpret_cast<uintptr_t>(strdup(rhs.c_str())) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -62,7 +59,7 @@ AsyncCallback::Message::Message(const std::string& rhs, Type t)
 {
 }
 
-AsyncCallback::Message::Message(double rhs)
+Argument::Argument(double rhs)
     : type{ NUMBER }
     , payload{ reinterpret_cast<uintptr_t>(new double{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -70,7 +67,7 @@ AsyncCallback::Message::Message(double rhs)
 {
 }
 
-AsyncCallback::Message::Message(int rhs)
+Argument::Argument(int rhs)
     : type{ INTEGER }
     , payload{ reinterpret_cast<uintptr_t>(new int{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
@@ -78,7 +75,7 @@ AsyncCallback::Message::Message(int rhs)
 {
 }
 
-AsyncCallback::Message::Message(const Message& rhs)
+Argument::Argument(const Argument& rhs)
     : type{ rhs.type }
     , payload{ rhs.payload }
     , refcnt{ rhs.refcnt }
@@ -92,7 +89,7 @@ AsyncCallback::Message::Message(const Message& rhs)
         ++(*refcnt);
 }
 
-AsyncCallback::Message& AsyncCallback::Message::operator=(const Message& rhs)
+Argument& Argument::operator=(const Argument& rhs)
 {
     if (this == &rhs)
         return *this;
@@ -108,12 +105,12 @@ AsyncCallback::Message& AsyncCallback::Message::operator=(const Message& rhs)
     return *this;
 }
 
-const AsyncCallback::Message* AsyncCallback::Message::next() const
+const Argument* Argument::next() const
 {
     return nextptr;
 }
 
-size_t AsyncCallback::Message::size() const
+size_t Argument::size() const
 {
     if (!nextptr)
         return 1;

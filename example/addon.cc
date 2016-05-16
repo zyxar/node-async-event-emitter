@@ -1,11 +1,11 @@
 #include "Event.h"
-#include <CrossCallback.h>
+#include <NodeAsyncCallback.h>
 
 using namespace v8;
 
 void InitAll(Local<Object> exports)
 {
-    CrossCallbackWrap::Init(exports);
+    cross::AsyncCallbackObjectWrap::Init(exports);
     Event::Init(exports);
 }
 

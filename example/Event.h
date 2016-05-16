@@ -1,9 +1,9 @@
 #ifndef Event_h
 #define Event_h
 
-#include <CrossCallback.h>
+#include <NodeAsyncCallback.h>
 class Runner;
-class Event : public CrossCallbackWrap {
+class Event : public cross::AsyncCallbackObjectWrap {
 public:
     Event()
         : r{ nullptr }

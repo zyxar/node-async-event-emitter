@@ -3,8 +3,9 @@
     'target_name': 'addon',
     'sources': [ 'addon.cc',
       'Event.cc',
-      "<!(node -e \"require('..')\")/AsyncCallback.cc",
-      "<!(node -e \"require('..')\")/CrossCallback.cc"
+      "<!(node -e \"require('..')\")/Argument.cc",
+      "<!(node -e \"require('..')\")/NodeAsyncCallback.cc",
+      "<!(node -e \"require('..')\")/UvAsyncCallback.cc"
     ],
     'include_dirs' : ["<!(node -e \"require('..')\")"],
     'conditions': [
