@@ -38,7 +38,7 @@ setTimeout(function() {
   process.exit();
 }, 2000);
 
-var arg = [ 'abc', Math.random() ];
+var arg = [ 'abc', Math.random(), 1 ];
 setInterval(function() {
   evt.emit.apply(evt, arg);
   arg.push(Math.random());

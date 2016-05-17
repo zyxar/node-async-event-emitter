@@ -100,14 +100,20 @@ void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = cross::Argument{ std::string(*String::Utf8Value(arguments[1]->ToString())) };
+    auto data = cross::Argument{ 0 };
     auto ptr = &data;
-    for (int i = 2; i < arguments.Length(); ++i) {
-        auto p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+    cross::Argument* p = nullptr;
+    for (int i = 1; i < arguments.Length(); ++i) {
+        if (arguments[i]->IsInt32() || arguments[i]->IsUint32())
+            p = new cross::Argument{ int(arguments[i]->IntegerValue()) };
+        else if (arguments[i]->IsNumber())
+            p = new cross::Argument{ arguments[i]->NumberValue() };
+        else
+            p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
         ptr->next(p);
         ptr = p;
     }
-    n->notify(event, data);
+    n->notify(event, *data.next());
 }
 
 void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
@@ -116,12 +122,18 @@ void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = cross::Argument{ std::string(*String::Utf8Value(arguments[1]->ToString())) };
+    auto data = cross::Argument{ 0 };
     auto ptr = &data;
-    for (int i = 2; i < arguments.Length(); ++i) {
-        auto p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+    cross::Argument* p = nullptr;
+    for (int i = 1; i < arguments.Length(); ++i) {
+        if (arguments[i]->IsInt32() || arguments[i]->IsUint32())
+            p = new cross::Argument{ int(arguments[i]->IntegerValue()) };
+        else if (arguments[i]->IsNumber())
+            p = new cross::Argument{ arguments[i]->NumberValue() };
+        else
+            p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
         ptr->next(p);
         ptr = p;
     }
-    n->prompt(event, data);
+    n->prompt(event, *data.next());
 }
