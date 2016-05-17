@@ -37,6 +37,7 @@ protected:
 class AsyncCallbackObjectWrap : public node::ObjectWrap, public NodeAsyncCallback {
 public:
     static void Init(v8::Local<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module);
     inline static void SETUP_CROSSCALLBACK_PROTOTYPE_METHODS(v8::Local<v8::FunctionTemplate> tmpl)
     {
         NODE_SET_PROTOTYPE_METHOD(tmpl, "on", On);

@@ -46,6 +46,24 @@ void AsyncCallbackObjectWrap::Init(Local<Object> exports)
     exports->Set(String::NewFromUtf8(isolate, "CrossCallback"), tpl->GetFunction());
 }
 
+void AsyncCallbackObjectWrap::Init(Local<Object> exports, Local<Object> module)
+{
+    Isolate* isolate = exports->GetIsolate();
+
+    // Prepare constructor template
+    Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+    tpl->SetClassName(String::NewFromUtf8(isolate, "CrossCallback"));
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Prototype
+    SETUP_CROSSCALLBACK_PROTOTYPE_METHODS(tpl);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "emit", Emit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "self", Self);
+
+    constructor.Reset(isolate, tpl->GetFunction());
+    module->Set(String::NewFromUtf8(isolate, "exports"), tpl->GetFunction());
+}
+
 void AsyncCallbackObjectWrap::New(const FunctionCallbackInfo<Value>& arguments)
 {
     Isolate* isolate = arguments.GetIsolate();

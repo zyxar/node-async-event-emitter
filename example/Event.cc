@@ -100,8 +100,14 @@ void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
-    n->emit<std::string>(event, data);
+    auto data = cross::Argument{ std::string(*String::Utf8Value(arguments[1]->ToString())) };
+    auto ptr = &data;
+    for (int i = 2; i < arguments.Length(); ++i) {
+        auto p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+        ptr->next(p);
+        ptr = p;
+    }
+    n->notify(event, data);
 }
 
 void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
@@ -110,6 +116,12 @@ void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
-    n->urge<std::string>(event, data);
+    auto data = cross::Argument{ std::string(*String::Utf8Value(arguments[1]->ToString())) };
+    auto ptr = &data;
+    for (int i = 2; i < arguments.Length(); ++i) {
+        auto p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+        ptr->next(p);
+        ptr = p;
+    }
+    n->prompt(event, data);
 }

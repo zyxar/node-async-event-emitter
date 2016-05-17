@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-
 'use strict';
 
-var addon = require('./build/Release/addon.node');
-
-var evt = new addon.Event();
-var abcHandler = function(v) {
-  console.log('1:', v);
+var evt = new (require('./build/Release/addon.node').Event)();
+var abcHandler = function() {
+  var args = arguments;
+  console.log('1:', Object.keys(args).map(function (k) {
+    return args[k];
+  }).join(', '));
 };
 
 evt.on('alert', function (message) {
@@ -38,8 +38,10 @@ setTimeout(function() {
   process.exit();
 }, 2000);
 
+var arg = [ 'abc', Math.random() ];
 setInterval(function() {
-  evt.emit('abc', Math.random());
+  evt.emit.apply(evt, arg);
+  arg.push(Math.random());
 }, 100);
 
 setTimeout(function() {
