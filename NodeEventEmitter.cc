@@ -12,29 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "NodeAsyncCallback.h"
+#include "NodeEventEmitter.h"
 
 using namespace v8;
 
-namespace cross {
+namespace async {
 
-Persistent<Function> AsyncCallbackObjectWrap::constructor;
-AsyncCallbackObjectWrap::AsyncCallbackObjectWrap()
-    : NodeAsyncCallback{}
+Persistent<Function> EventEmitterObjectWrap::constructor;
+EventEmitterObjectWrap::EventEmitterObjectWrap()
+    : NodeEventEmitter{}
 {
 }
 
-AsyncCallbackObjectWrap::~AsyncCallbackObjectWrap()
-{
-}
+EventEmitterObjectWrap::~EventEmitterObjectWrap() {}
 
-void AsyncCallbackObjectWrap::Init(Local<Object> exports)
+void EventEmitterObjectWrap::Init(Local<Object> exports)
 {
-    Isolate* isolate = exports->GetIsolate();
+    auto isolate = exports->GetIsolate();
 
     // Prepare constructor template
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-    tpl->SetClassName(String::NewFromUtf8(isolate, "CrossCallback"));
+    tpl->SetClassName(String::NewFromUtf8(isolate, "EventEmitter"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Prototype
@@ -43,16 +41,16 @@ void AsyncCallbackObjectWrap::Init(Local<Object> exports)
     NODE_SET_PROTOTYPE_METHOD(tpl, "self", Self);
 
     constructor.Reset(isolate, tpl->GetFunction());
-    exports->Set(String::NewFromUtf8(isolate, "CrossCallback"), tpl->GetFunction());
+    exports->Set(String::NewFromUtf8(isolate, "EventEmitter"), tpl->GetFunction());
 }
 
-void AsyncCallbackObjectWrap::Init(Local<Object> exports, Local<Object> module)
+void EventEmitterObjectWrap::Init(Local<Object> exports, Local<Object> module)
 {
-    Isolate* isolate = exports->GetIsolate();
+    auto isolate = exports->GetIsolate();
 
     // Prepare constructor template
     Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-    tpl->SetClassName(String::NewFromUtf8(isolate, "CrossCallback"));
+    tpl->SetClassName(String::NewFromUtf8(isolate, "EventEmitter"));
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Prototype
@@ -64,11 +62,11 @@ void AsyncCallbackObjectWrap::Init(Local<Object> exports, Local<Object> module)
     module->Set(String::NewFromUtf8(isolate, "exports"), tpl->GetFunction());
 }
 
-void AsyncCallbackObjectWrap::New(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::New(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = arguments.GetIsolate();
+    auto isolate = arguments.GetIsolate();
     if (arguments.IsConstructCall()) {
-        AsyncCallbackObjectWrap* n = new AsyncCallbackObjectWrap();
+        auto n = new EventEmitterObjectWrap();
         n->Wrap(arguments.This());
         arguments.GetReturnValue().Set(arguments.This());
     } else {
@@ -78,28 +76,44 @@ void AsyncCallbackObjectWrap::New(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void AsyncCallbackObjectWrap::Self(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::Self(const FunctionCallbackInfo<Value>& arguments)
 {
-    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
+    auto n = ObjectWrap::Unwrap<EventEmitterObjectWrap>(arguments.Holder());
     arguments.GetReturnValue().Set(n->mStore);
 }
 
-void AsyncCallbackObjectWrap::Emit(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::Emit(const FunctionCallbackInfo<Value>& arguments)
 {
     if (arguments.Length() < 2 || !arguments[0]->IsString())
         return;
-    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
-    std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    std::string data = std::string(*String::Utf8Value(arguments[1]->ToString()));
-    n->emit<std::string>(event, data);
+    auto n = ObjectWrap::Unwrap<EventEmitterObjectWrap>(arguments.Holder());
+    auto event = std::string(*String::Utf8Value(arguments[0]->ToString()));
+    auto data = async::Argument{ 0 };
+    auto ptr = &data;
+    async::Argument* p = nullptr;
+    for (int i = 1; i < arguments.Length(); ++i) {
+        if (arguments[i]->IsInt32() || arguments[i]->IsUint32())
+            p = new async::Argument{ int(arguments[i]->IntegerValue()) };
+        else if (arguments[i]->IsNumber())
+            p = new async::Argument{ arguments[i]->NumberValue() };
+        else if (arguments[i]->IsBoolean())
+            p = new async::Argument{ *arguments[i]->ToBoolean() };
+        else if (arguments[i]->IsString())
+            p = new async::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+        else
+            continue;
+        ptr->next(p);
+        ptr = p;
+    }
+    n->notify(event, *data.next());
 }
 
-void AsyncCallbackObjectWrap::On(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::On(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = arguments.GetIsolate();
+    auto isolate = arguments.GetIsolate();
     if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
+    auto n = ObjectWrap::Unwrap<EventEmitterObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     auto val = store->Get(arguments[0]);
     if (val->IsArray()) {
@@ -112,18 +126,18 @@ void AsyncCallbackObjectWrap::On(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void AsyncCallbackObjectWrap::Off(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::Off(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = arguments.GetIsolate();
+    auto isolate = arguments.GetIsolate();
     if (arguments.Length() < 2 || !arguments[0]->IsString() || !arguments[1]->IsFunction())
         return;
-    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
+    auto n = ObjectWrap::Unwrap<EventEmitterObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     auto val = store->Get(arguments[0]);
     if (!val->IsArray())
         return;
-    Local<Array> array = Local<Array>::Cast(val);
-    uint32_t new_length = array->Length();
+    auto array = Local<Array>::Cast(val);
+    auto new_length = array->Length();
     for (uint32_t i = 0; i < new_length; ++i) {
         if (array->Get(i)->Equals(arguments[1])) {
             for (uint32_t j = i; j < new_length; ++j) {
@@ -136,10 +150,10 @@ void AsyncCallbackObjectWrap::Off(const FunctionCallbackInfo<Value>& arguments)
     }
 }
 
-void AsyncCallbackObjectWrap::Clear(const FunctionCallbackInfo<Value>& arguments)
+void EventEmitterObjectWrap::Clear(const FunctionCallbackInfo<Value>& arguments)
 {
-    Isolate* isolate = arguments.GetIsolate();
-    AsyncCallbackObjectWrap* n = ObjectWrap::Unwrap<AsyncCallbackObjectWrap>(arguments.Holder());
+    auto isolate = arguments.GetIsolate();
+    auto n = ObjectWrap::Unwrap<EventEmitterObjectWrap>(arguments.Holder());
     auto store = Local<Object>::New(isolate, n->mStore);
     if (arguments.Length() == 0) {
         n->mStore.Reset(isolate, Object::New(isolate));
@@ -152,21 +166,31 @@ void AsyncCallbackObjectWrap::Clear(const FunctionCallbackInfo<Value>& arguments
     }
 }
 
-// ------------------------NodeAsyncCallback-----------------------------------
+// ------------------------NodeEventEmitter-----------------------------------
 
-NodeAsyncCallback* NodeAsyncCallback::New(Isolate* isolate, const Local<Function>& f)
+NodeEventEmitter* NodeEventEmitter::New(Isolate* isolate, const Local<Function>& f)
 {
-    return (new NodeAsyncCallback(isolate, f));
+    return (new NodeEventEmitter(isolate, f));
 }
 
-NodeAsyncCallback* NodeAsyncCallback::New(const Local<Function>& f)
+NodeEventEmitter* NodeEventEmitter::New(const Local<Function>& f)
 {
     return New(Isolate::GetCurrent(), f);
 }
 
-void NodeAsyncCallback::operator()(const Data& data)
+bool NodeEventEmitter::notify(const std::string& event, const Argument& argument)
 {
-    Isolate* isolate = Isolate::GetCurrent();
+    return push_back(event, argument);
+}
+
+bool NodeEventEmitter::prompt(const std::string& event, const Argument& argument)
+{
+    return push_front(event, argument);
+}
+
+void NodeEventEmitter::process(const Data& data)
+{
+    auto isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
     auto store = Local<Object>::New(isolate, mStore);
     if (store.IsEmpty())
@@ -178,16 +202,16 @@ void NodeAsyncCallback::operator()(const Data& data)
     unsigned i = 0;
     while (ptr) {
         switch (ptr->type) {
-        case cross::Argument::NUMBER:
+        case async::Argument::NUMBER:
             argv[i] = Number::New(isolate, *reinterpret_cast<double*>(ptr->payload));
             break;
-        case cross::Argument::INTEGER:
-            argv[i] = Integer::New(isolate, *reinterpret_cast<int*>(ptr->payload));
+        case async::Argument::INTEGER:
+            argv[i] = Integer::New(isolate, *reinterpret_cast<int64_t*>(ptr->payload));
             break;
-        case cross::Argument::JSON:
-            argv[i] = JSON::Parse(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload)));
+        case async::Argument::BOOLEAN:
+            argv[i] = Boolean::New(isolate, *reinterpret_cast<bool*>(ptr->payload));
             break;
-        case cross::Argument::STRING:
+        case async::Argument::STRING:
             argv[i] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload));
             break;
         default:
@@ -214,9 +238,9 @@ void NodeAsyncCallback::operator()(const Data& data)
         delete[] argv;
         return;
     }
-    Local<Array> array = Local<Array>::Cast(val);
+    auto array = Local<Array>::Cast(val);
     for (uint32_t i = 0; i < array->Length(); ++i) {
-        Local<Value> f = array->Get(i);
+        auto f = array->Get(i);
         if (f->IsFunction()) {
             Local<Function>::Cast(f)->Call(isolate->GetCurrentContext()->Global(), argc, argv);
             if (try_catch.HasCaught()) {
@@ -227,20 +251,18 @@ void NodeAsyncCallback::operator()(const Data& data)
     delete[] argv;
 }
 
-NodeAsyncCallback::NodeAsyncCallback()
-    : UvAsyncCallback{ uv_default_loop() }
+NodeEventEmitter::NodeEventEmitter()
+    : uv_deque{}
     , mStore{ Isolate::GetCurrent(), Object::New(Isolate::GetCurrent()) }
 {
 }
 
-NodeAsyncCallback::NodeAsyncCallback(Isolate* isolate, const Local<Function>& f)
-    : UvAsyncCallback{ uv_default_loop() }
+NodeEventEmitter::NodeEventEmitter(Isolate* isolate, const Local<Function>& f)
+    : uv_deque{}
     , mStore{ isolate, f }
 {
 }
 
-NodeAsyncCallback::~NodeAsyncCallback()
-{
-    mStore.Reset();
-};
-}
+NodeEventEmitter::~NodeEventEmitter() {}
+
+} // namespace async

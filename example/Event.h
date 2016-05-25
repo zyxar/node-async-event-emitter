@@ -1,10 +1,10 @@
 #ifndef Event_h
 #define Event_h
 
-#include <NodeAsyncCallback.h>
+#include <NodeEventEmitter.h>
 
 class Runner;
-class Event : public cross::AsyncCallbackObjectWrap {
+class Event : public async::EventEmitterObjectWrap {
 public:
     Event()
         : r{ nullptr }

@@ -7,7 +7,7 @@ using namespace v8;
 
 class Runner {
 public:
-    Runner(cross::AsyncCallback* cb = nullptr)
+    Runner(async::EventEmitter* cb = nullptr)
         : mCallback{ cb }
     {
     }
@@ -31,11 +31,11 @@ private:
             if (std::chrono::duration_cast<std::chrono::microseconds>(now - start).count() > 1000000)
                 break;
             if (mCallback)
-                (*mCallback)("WOW!", 1, 0.01f);
+                (*mCallback)("WOW!", 1, 0.01f, true, false, nullptr);
             usleep(100);
         }
     }
-    std::unique_ptr<cross::AsyncCallback> mCallback;
+    std::unique_ptr<async::EventEmitter> mCallback;
     boost::thread mThread;
 };
 
@@ -81,7 +81,7 @@ void Event::Run(const v8::FunctionCallbackInfo<v8::Value>& arguments)
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     if (n->r)
         delete n->r;
-    n->r = new Runner(NodeAsyncCallback::New(Local<Function>::Cast(arguments[0])));
+    n->r = new Runner(NodeEventEmitter::New(Local<Function>::Cast(arguments[0])));
     n->r->run();
 }
 
@@ -98,18 +98,22 @@ void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
 {
     if (arguments.Length() < 2 || !arguments[0]->IsString())
         return;
-    Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
-    std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = cross::Argument{ 0 };
+    auto n = ObjectWrap::Unwrap<Event>(arguments.Holder());
+    auto event = std::string(*String::Utf8Value(arguments[0]->ToString()));
+    auto data = async::Argument{ 0 };
     auto ptr = &data;
-    cross::Argument* p = nullptr;
+    async::Argument* p = nullptr;
     for (int i = 1; i < arguments.Length(); ++i) {
         if (arguments[i]->IsInt32() || arguments[i]->IsUint32())
-            p = new cross::Argument{ int(arguments[i]->IntegerValue()) };
+            p = new async::Argument{ int(arguments[i]->IntegerValue()) };
         else if (arguments[i]->IsNumber())
-            p = new cross::Argument{ arguments[i]->NumberValue() };
+            p = new async::Argument{ arguments[i]->NumberValue() };
+        else if (arguments[i]->IsBoolean())
+            p = new async::Argument{ *arguments[i]->ToBoolean() };
+        else if (arguments[i]->IsString())
+            p = new async::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
         else
-            p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+            continue;
         ptr->next(p);
         ptr = p;
     }
@@ -122,16 +126,16 @@ void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = cross::Argument{ 0 };
+    auto data = async::Argument{ 0 };
     auto ptr = &data;
-    cross::Argument* p = nullptr;
+    async::Argument* p = nullptr;
     for (int i = 1; i < arguments.Length(); ++i) {
         if (arguments[i]->IsInt32() || arguments[i]->IsUint32())
-            p = new cross::Argument{ int(arguments[i]->IntegerValue()) };
+            p = new async::Argument{ int(arguments[i]->IntegerValue()) };
         else if (arguments[i]->IsNumber())
-            p = new cross::Argument{ arguments[i]->NumberValue() };
+            p = new async::Argument{ arguments[i]->NumberValue() };
         else
-            p = new cross::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+            p = new async::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
         ptr->next(p);
         ptr = p;
     }

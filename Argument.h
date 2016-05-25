@@ -16,26 +16,33 @@
 #define Argument_h
 
 #include <atomic>
+#include <cstddef>
 #include <string>
 
-namespace cross {
+namespace async {
 
 struct Argument {
     enum Type {
         UNDEFINED,
-        STRING,
-        JSON,
+        BOOLEAN,
         NUMBER,
         INTEGER,
+        STRING,
     };
     Type type;
     uintptr_t payload;
     virtual ~Argument();
     Argument() = delete;
-    Argument(const char* rhs, Type t = STRING);
-    Argument(const std::string& rhs, Type t = STRING);
+    Argument(std::nullptr_t);
+    Argument(const char* rhs);
+    Argument(const std::string& rhs);
+    Argument(bool rhs);
     Argument(double rhs);
-    Argument(int rhs);
+    Argument(int64_t rhs);
+    Argument(uint64_t rhs);
+    Argument(int32_t rhs);
+    Argument(uint32_t rhs);
+
     Argument(const Argument& rhs);
     Argument& operator=(const Argument& rhs);
     const Argument* next() const;
@@ -47,6 +54,6 @@ private:
     Argument* nextptr;
 };
 
-} // namespace cross
+} // namespace async
 
 #endif // Argument_h

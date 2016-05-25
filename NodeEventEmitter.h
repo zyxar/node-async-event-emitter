@@ -12,29 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef NodeAsyncCallback_h
-#define NodeAsyncCallback_h
+#ifndef NodeEventEmitter_h
+#define NodeEventEmitter_h
 
-#include "UvAsyncCallback.h"
+#include "EventEmitter.h"
+#include "uv_deque.h"
 #include <node.h>
 #include <node_object_wrap.h>
 
-namespace cross {
+namespace async {
 
-class NodeAsyncCallback : public ::cross::UvAsyncCallback {
+class NodeEventEmitter : public ::async::EventEmitter, public ::async::internal::uv_deque {
 public:
-    static NodeAsyncCallback* New(v8::Isolate*, const v8::Local<v8::Function>&);
-    static NodeAsyncCallback* New(const v8::Local<v8::Function>&);
-    virtual ~NodeAsyncCallback();
+    static NodeEventEmitter* New(v8::Isolate*, const v8::Local<v8::Function>&);
+    static NodeEventEmitter* New(const v8::Local<v8::Function>&);
+    virtual ~NodeEventEmitter();
 
 protected:
-    explicit NodeAsyncCallback();
-    explicit NodeAsyncCallback(v8::Isolate*, const v8::Local<v8::Function>&);
-    void operator()(const Data& data);
+    explicit NodeEventEmitter();
+    explicit NodeEventEmitter(v8::Isolate*, const v8::Local<v8::Function>&);
+
+    // ::async::internal::uv_deque<Argument>
+    void process(const Data& data);
+    // ::async::EventEmitter
+    virtual bool notify(const std::string& event, const Argument&);
+    virtual bool prompt(const std::string& event, const Argument&);
+    // storage
     v8::Persistent<v8::Object> mStore;
 };
 
-class AsyncCallbackObjectWrap : public node::ObjectWrap, public NodeAsyncCallback {
+class EventEmitterObjectWrap : public node::ObjectWrap, public NodeEventEmitter {
 public:
     static void Init(v8::Local<v8::Object> exports);
     static void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module);
@@ -49,8 +56,8 @@ public:
     }
 
 protected:
-    explicit AsyncCallbackObjectWrap();
-    virtual ~AsyncCallbackObjectWrap();
+    explicit EventEmitterObjectWrap();
+    virtual ~EventEmitterObjectWrap();
 
 private:
     static void New(const v8::FunctionCallbackInfo<v8::Value>&);
@@ -64,4 +71,4 @@ private:
 };
 }
 
-#endif // NodeAsyncCallback_h
+#endif // NodeEventEmitter_h

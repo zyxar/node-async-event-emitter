@@ -12,28 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef xcb_h
-#define xcb_h
+#ifndef EventEmitter_h
+#define EventEmitter_h
 
 #include "Argument.h"
-#include <atomic>
 #include <string>
 
-namespace cross {
+namespace async {
 
-class AsyncCallback {
+class EventEmitter {
 public:
-    AsyncCallback() {}
-    virtual ~AsyncCallback() {}
+    EventEmitter() {}
+    virtual ~EventEmitter() {}
 
     virtual bool notify(const std::string& event, const Argument&) = 0; // event, FIFO
     virtual bool prompt(const std::string& event, const Argument&) = 0; // event, LIFO
     virtual bool call(const Argument& argument) { return notify("", argument); } // callback
 
-    template <typename... ArgType>
-    bool emit(const std::string& event, const ArgType&... args)
+    template <class... Args>
+    bool emit(const std::string& event, const Args&... args)
     {
-        const unsigned size = sizeof...(ArgType);
+        const unsigned size = sizeof...(Args);
         Argument m[size] = { args... };
         unsigned i = 1;
         Argument* ptr = &m[0];
@@ -46,10 +45,10 @@ public:
         return notify(event, m[0]);
     }
 
-    template <typename... ArgType>
-    bool urge(const std::string& event, const ArgType&... args)
+    template <class... Args>
+    bool urge(const std::string& event, const Args&... args)
     {
-        const unsigned size = sizeof...(ArgType);
+        const unsigned size = sizeof...(Args);
         Argument m[size] = { args... };
         unsigned i = 1;
         Argument* ptr = &m[0];
@@ -62,10 +61,10 @@ public:
         return prompt(event, m[0]);
     }
 
-    template <typename... ArgType>
-    bool operator()(const ArgType&... args)
+    template <class... Args>
+    bool operator()(const Args&... args)
     {
-        const unsigned size = sizeof...(ArgType);
+        const unsigned size = sizeof...(Args);
         Argument m[size] = { args... };
         unsigned i = 1;
         Argument* ptr = &m[0];
@@ -79,6 +78,6 @@ public:
     }
 };
 
-} // namespace cross
+} // namespace async
 
-#endif // xcb_h
+#endif // EventEmitter_h

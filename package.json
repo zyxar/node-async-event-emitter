@@ -1,7 +1,7 @@
 {
   "name": "xcb",
   "version": "0.2.0",
-  "description": "Asynchronous Across Threads Callback and Event handling for Node.js",
+  "description": "Asynchronous Event and Callback Handling for Node.js with Native addon",
   "repository": {
     "type": "git",
     "url": "https://github.com/zyxar/node-xcb.git"

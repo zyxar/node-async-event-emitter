@@ -1,13 +1,14 @@
 {
   'targets': [{
     'target_name': 'addon',
-    'sources': [ 'addon.cc',
+    'sources': [
+      'addon.cc',
       'Event.cc',
       "<!(node -e \"require('..')\")/Argument.cc",
-      "<!(node -e \"require('..')\")/NodeAsyncCallback.cc",
-      "<!(node -e \"require('..')\")/UvAsyncCallback.cc"
+      "<!(node -e \"require('..')\")/NodeEventEmitter.cc",
+      "<!(node -e \"require('..')\")/uv_deque.cc"
     ],
-    'include_dirs' : ["<!(node -e \"require('..')\")"],
+    'include_dirs' : [ "<!(node -e \"require('..')\")" ],
     'conditions': [
       [ 'OS=="mac"', {
         'xcode_settings': {

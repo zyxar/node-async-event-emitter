@@ -13,10 +13,11 @@ evt.on('alert', function (message) {
   console.log('alert: ' + message);
 });
 
-evt.run(function (a, b, c) {
-  console.log('[', typeof a, ']:', a);
-  console.log('[', typeof b, ']:', b);
-  console.log('[', typeof c, ']:', c);
+evt.run(function () {
+  var args = arguments;
+  Object.keys(args).map(function (k) {
+    console.log('[', typeof args[k], ']:', args[k]);
+  });
 });
 
 evt.on('abc', abcHandler);

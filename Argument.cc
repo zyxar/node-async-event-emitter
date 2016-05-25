@@ -15,7 +15,7 @@
 #include "Argument.h"
 #include <string.h>
 
-namespace cross {
+namespace async {
 
 Argument::~Argument()
 {
@@ -30,29 +30,39 @@ Argument::~Argument()
         case NUMBER:
             delete reinterpret_cast<double*>(payload);
             break;
+        case BOOLEAN:
+            delete reinterpret_cast<bool*>(payload);
+            break;
         case STRING:
-        case JSON:
             delete[] reinterpret_cast<const char*>(payload);
             break;
         case UNDEFINED:
         default:
-            return;
+            break;
         }
         if (nextptr)
             delete nextptr;
     }
 }
 
-Argument::Argument(const char* rhs, Type t)
-    : type{ t == JSON ? JSON : STRING }
+Argument::Argument(std::nullptr_t)
+    : type{ UNDEFINED }
+    , payload{ 0 }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
+{
+}
+
+Argument::Argument(const char* rhs)
+    : type{ STRING }
     , payload{ reinterpret_cast<uintptr_t>(strdup(rhs)) }
     , refcnt{ new std::atomic<uint32_t>(1) }
     , nextptr{ nullptr }
 {
 }
 
-Argument::Argument(const std::string& rhs, Type t)
-    : type{ t == JSON ? JSON : STRING }
+Argument::Argument(const std::string& rhs)
+    : type{ STRING }
     , payload{ reinterpret_cast<uintptr_t>(strdup(rhs.c_str())) }
     , refcnt{ new std::atomic<uint32_t>(1) }
     , nextptr{ nullptr }
@@ -67,9 +77,41 @@ Argument::Argument(double rhs)
 {
 }
 
-Argument::Argument(int rhs)
+Argument::Argument(int64_t rhs)
     : type{ INTEGER }
-    , payload{ reinterpret_cast<uintptr_t>(new int{ rhs }) }
+    , payload{ reinterpret_cast<uintptr_t>(new int64_t{ rhs }) }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
+{
+}
+
+Argument::Argument(uint64_t rhs)
+    : type{ INTEGER }
+    , payload{ reinterpret_cast<uintptr_t>(new int64_t{ static_cast<int64_t>(rhs) }) }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
+{
+}
+
+Argument::Argument(int32_t rhs)
+    : type{ INTEGER }
+    , payload{ reinterpret_cast<uintptr_t>(new int64_t{ rhs }) }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
+{
+}
+
+Argument::Argument(uint32_t rhs)
+    : type{ INTEGER }
+    , payload{ reinterpret_cast<uintptr_t>(new int64_t{ rhs }) }
+    , refcnt{ new std::atomic<uint32_t>(1) }
+    , nextptr{ nullptr }
+{
+}
+
+Argument::Argument(bool rhs)
+    : type{ BOOLEAN }
+    , payload{ reinterpret_cast<uintptr_t>(new bool{ rhs }) }
     , refcnt{ new std::atomic<uint32_t>(1) }
     , nextptr{ nullptr }
 {
@@ -117,4 +159,4 @@ size_t Argument::size() const
     return 1 + nextptr->size();
 }
 
-} // namespace cross
+} // namespace async
