@@ -38,7 +38,7 @@ bool NodeEventEmitter::prompt(const std::string& event, const Argument& argument
     return push_front(event, argument);
 }
 
-void NodeEventEmitter::process(const Data& data)
+void NodeEventEmitter::process(const Data<::async::Argument>& data)
 {
     auto isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);

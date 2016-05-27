@@ -4,7 +4,6 @@
     'sources': [
       'addon.cc',
       'Event.cc',
-      "<!(node -e \"require('..')\")/uv_deque.cc",
       "<!(node -e \"require('..')\")/Argument.cc",
       "<!(node -e \"require('..')\")/NodeEventEmitter.cc",
       "<!(node -e \"require('..')\")/EventEmitterObjectWrap.cc",

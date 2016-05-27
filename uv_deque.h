@@ -15,36 +15,94 @@
 #ifndef uv_deque_h
 #define uv_deque_h
 
-#include "Argument.h"
 #include <deque>
 #include <mutex>
+#include <string>
 #include <uv.h>
 
 namespace async {
 namespace internal {
+    template <class T>
     class uv_deque {
     public:
-        explicit uv_deque(uv_loop_t* = uv_default_loop());
-        virtual ~uv_deque();
-        virtual bool push_back(const std::string& event, const Argument& argument);
-        virtual bool push_front(const std::string& event, const Argument& argument);
-        virtual size_t size();
+        explicit uv_deque(uv_loop_t* loop = uv_default_loop())
+        {
+            handle_ = reinterpret_cast<uv_async_t*>(malloc(sizeof(uv_async_t)));
+            handle_->data = this;
+            uv_async_init(loop, handle_, uv_deque<T>::callback);
+        }
+
+        virtual ~uv_deque()
+        {
+            uv_close(reinterpret_cast<uv_handle_t*>(handle_), uv_deque<T>::closeCallback);
+        }
+
+        virtual bool push_back(const std::string& event, const T& argument)
+        {
+            if (uv_is_active(reinterpret_cast<uv_handle_t*>(handle_))) {
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    queue_.push_back(Data<T>{ event, argument });
+                }
+                uv_async_send(handle_);
+                return true;
+            }
+            return false;
+        }
+
+        virtual bool push_front(const std::string& event, const T& argument)
+        {
+            if (uv_is_active(reinterpret_cast<uv_handle_t*>(handle_))) {
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    queue_.push_front(Data<T>{ event, argument });
+                }
+                uv_async_send(handle_);
+                return true;
+            }
+            return false;
+        }
+
+        virtual size_t size()
+        {
+            return queue_.size();
+        }
 
     protected:
+        template <class D>
         struct Data {
             std::string event;
-            Argument argument;
+            D argument;
         };
-        virtual void process(const Data& data) = 0;
+        virtual void process(const Data<T>& data) = 0;
 
     private:
         uv_async_t* handle_;
         std::mutex mutex_;
-        std::deque<Data> queue_;
+        std::deque<Data<T>> queue_;
 
-        void process();
-        static void closeCallback(uv_handle_t*);
-        static void callback(uv_async_t*);
+        void process()
+        {
+            while (!queue_.empty()) {
+                {
+                    std::unique_lock<std::mutex> lock(mutex_);
+                    Data<T> data = queue_.front();
+                    queue_.pop_front();
+                    lock.unlock();
+                    process(data);
+                }
+            }
+        }
+
+        static void closeCallback(uv_handle_t* handle)
+        {
+            free(handle);
+        }
+
+        static void callback(uv_async_t* handle)
+        {
+            reinterpret_cast<uv_deque*>(handle->data)->process();
+        }
     };
 } // namespace internal
 } // namespace async

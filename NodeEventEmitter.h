@@ -22,7 +22,7 @@
 
 namespace async {
 
-class NodeEventEmitter : public ::async::EventEmitter, public ::async::internal::uv_deque {
+class NodeEventEmitter : public ::async::EventEmitter, public ::async::internal::uv_deque<::async::Argument> {
 public:
     static NodeEventEmitter* New(v8::Isolate*, const v8::Local<v8::Function>&);
     static NodeEventEmitter* New(const v8::Local<v8::Function>&);
@@ -33,7 +33,7 @@ protected:
     explicit NodeEventEmitter(v8::Isolate*, const v8::Local<v8::Function>&);
 
     // ::async::internal::uv_deque<Argument>
-    void process(const Data& data);
+    void process(const Data<::async::Argument>& data);
     // ::async::EventEmitter
     virtual bool notify(const std::string& event, const Argument&);
     virtual bool prompt(const std::string& event, const Argument&);
