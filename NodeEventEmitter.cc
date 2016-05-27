@@ -203,16 +203,16 @@ void NodeEventEmitter::process(const Data& data)
     while (ptr) {
         switch (ptr->type) {
         case async::Argument::NUMBER:
-            argv[i] = Number::New(isolate, *reinterpret_cast<double*>(ptr->payload));
+            argv[i] = Number::New(isolate, ptr->value<double>());
             break;
         case async::Argument::INTEGER:
-            argv[i] = Integer::New(isolate, *reinterpret_cast<int64_t*>(ptr->payload));
+            argv[i] = Integer::New(isolate, ptr->value<int>());
             break;
         case async::Argument::BOOLEAN:
-            argv[i] = Boolean::New(isolate, *reinterpret_cast<bool*>(ptr->payload));
+            argv[i] = Boolean::New(isolate, ptr->value<bool>());
             break;
         case async::Argument::STRING:
-            argv[i] = String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ptr->payload));
+            argv[i] = String::NewFromUtf8(isolate, ptr->value<const char*>());
             break;
         default:
             argv[i] = Undefined(isolate);

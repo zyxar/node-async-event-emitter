@@ -49,6 +49,9 @@ struct Argument {
     void next(Argument* p) { nextptr = p; }
     size_t size() const;
 
+    template <typename T>
+    T value() const;
+
 private:
     std::atomic<uint32_t>* refcnt;
     Argument* nextptr;

@@ -159,4 +159,40 @@ size_t Argument::size() const
     return 1 + nextptr->size();
 }
 
+template <>
+std::nullptr_t Argument::value<std::nullptr_t>() const
+{
+    return nullptr;
+}
+
+template <>
+int Argument::value<int>() const
+{
+    return *reinterpret_cast<int64_t*>(payload);
+}
+
+template <>
+double Argument::value<double>() const
+{
+    return *reinterpret_cast<double*>(payload);
+}
+
+template <>
+bool Argument::value<bool>() const
+{
+    return *reinterpret_cast<bool*>(payload);
+}
+
+template <>
+const char* Argument::value<const char*>() const
+{
+    return reinterpret_cast<const char*>(payload);
+}
+
+template <>
+std::string Argument::value<std::string>() const
+{
+    return std::string{ reinterpret_cast<const char*>(payload) };
+}
+
 } // namespace async
