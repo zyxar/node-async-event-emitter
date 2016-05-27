@@ -4,9 +4,9 @@
     'sources': [
       'addon.cc',
       'Event.cc',
-      "<!(node -e \"require('..')\")/Argument.cc",
-      "<!(node -e \"require('..')\")/NodeEventEmitter.cc",
-      "<!(node -e \"require('..')\")/EventEmitterObjectWrap.cc",
+      "<!(node -e \"require('..')\")/async/Argument.cc",
+      "<!(node -e \"require('..')\")/async/NodeEventEmitter.cc",
+      "<!(node -e \"require('..')\")/async/EventEmitterObjectWrap.cc",
     ],
     'include_dirs' : [ "<!(node -e \"require('..')\")" ],
     'conditions': [

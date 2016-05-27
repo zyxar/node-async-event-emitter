@@ -17,6 +17,7 @@
 
 #include <deque>
 #include <mutex>
+#include <stdlib.h>
 #include <string>
 #include <uv.h>
 

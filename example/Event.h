@@ -1,7 +1,7 @@
 #ifndef Event_h
 #define Event_h
 
-#include <EventEmitterObjectWrap.h>
+#include <async/EventEmitterObjectWrap.h>
 
 class Runner;
 class Event : public async::EventEmitterObjectWrap {

@@ -16,7 +16,7 @@
 #define NodeEventEmitter_h
 
 #include "EventEmitter.h"
-#include "uv_deque.h"
+#include "internal/uv_deque.h"
 #include <node.h>
 #include <node_object_wrap.h>
 
