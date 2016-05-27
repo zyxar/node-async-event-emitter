@@ -1,5 +1,5 @@
 #include "Event.h"
-#include <NodeEventEmitter.h>
+#include <EventEmitterObjectWrap.h>
 
 using namespace v8;
 

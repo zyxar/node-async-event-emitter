@@ -41,34 +41,6 @@ protected:
     v8::Persistent<v8::Object> mStore;
 };
 
-class EventEmitterObjectWrap : public node::ObjectWrap, public NodeEventEmitter {
-public:
-    static void Init(v8::Local<v8::Object> exports);
-    static void Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module);
-    inline static void SETUP_CROSSCALLBACK_PROTOTYPE_METHODS(v8::Local<v8::FunctionTemplate> tmpl)
-    {
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "on", On);
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "addEventListener", On);
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "off", Off);
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "removeEventListener", Off);
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "removeAllEventListeners", Clear);
-        NODE_SET_PROTOTYPE_METHOD(tmpl, "clearEventListener", Clear);
-    }
-
-protected:
-    explicit EventEmitterObjectWrap();
-    virtual ~EventEmitterObjectWrap();
-
-private:
-    static void New(const v8::FunctionCallbackInfo<v8::Value>&);
-    static void Self(const v8::FunctionCallbackInfo<v8::Value>&);
-    static void Emit(const v8::FunctionCallbackInfo<v8::Value>&);
-    static void On(const v8::FunctionCallbackInfo<v8::Value>&);
-    static void Off(const v8::FunctionCallbackInfo<v8::Value>&);
-    static void Clear(const v8::FunctionCallbackInfo<v8::Value>&);
-
-    static v8::Persistent<v8::Function> constructor;
-};
-}
+} // namespace async
 
 #endif // NodeEventEmitter_h

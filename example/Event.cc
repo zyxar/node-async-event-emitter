@@ -1,7 +1,7 @@
 #include "Event.h"
-#include <boost/thread.hpp>
 #include <chrono>
 #include <memory>
+#include <thread>
 
 using namespace v8;
 
@@ -19,7 +19,7 @@ public:
     }
     void run()
     {
-        mThread = boost::thread(&Runner::loop, this);
+        mThread = std::thread(&Runner::loop, this);
     }
 
 private:
@@ -36,7 +36,7 @@ private:
         }
     }
     std::unique_ptr<async::EventEmitter> mCallback;
-    boost::thread mThread;
+    std::thread mThread;
 };
 
 Persistent<Function> Event::constructor;
