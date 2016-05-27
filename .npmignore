@@ -1,6 +1,6 @@
 test/
 build/
-examples/
+example/
 .travis.yml
 .npmignore
 Makefile
