@@ -1,3 +1,7 @@
+##v0.3.0:
+  - support Boolean & Undefined;
+  - name as node-async-event-emitter;
+
 ##v0.2.0:
   - rename cross::AsyncCallback::Message to cross::Argument;
   - split CrossCallback into UvAsyncCallback, NodeAsyncCallback;

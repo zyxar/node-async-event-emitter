@@ -1,10 +1,10 @@
 {
-  "name": "xcb",
-  "version": "0.2.0",
+  "name": "async-event-emitter",
+  "version": "0.3.0",
   "description": "Asynchronous Event and Callback Handling for Node.js with Native addon",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zyxar/node-xcb.git"
+    "url": "https://github.com/zyxar/node-async-event-emitter.git"
   },
   "author": "zyxar <teamo@live.com>",
   "scripts": {
@@ -16,7 +16,7 @@
     "zyxar <teamo@live.com> (https://github.com/zyxar)"
   ],
   "bugs": {
-    "url": "https://github.com/zyxar/node-xcb/issues"
+    "url": "https://github.com/zyxar/node-async-event-emitter/issues"
   },
   "devDependencies": {
     "node-gyp": "~3.0.1"
