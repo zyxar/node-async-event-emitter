@@ -25,10 +25,11 @@ public:
 private:
     void loop()
     {
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        auto start = std::chrono::steady_clock::now();
         while (1) {
-            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-            if (std::chrono::duration_cast<std::chrono::microseconds>(now - start).count() > 1000000)
+            auto now = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
+            if (duration > 1000000)
                 break;
             if (mCallback)
                 (*mCallback)("WOW!", 1, 0.01f, true, false, nullptr);
@@ -100,7 +101,7 @@ void Event::Emit(const FunctionCallbackInfo<Value>& arguments)
         return;
     auto n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     auto event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = async::Argument{ 0 };
+    auto data = async::Argument{ nullptr };
     auto ptr = &data;
     async::Argument* p = nullptr;
     for (int i = 1; i < arguments.Length(); ++i) {
@@ -126,7 +127,7 @@ void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
         return;
     Event* n = ObjectWrap::Unwrap<Event>(arguments.Holder());
     std::string event = std::string(*String::Utf8Value(arguments[0]->ToString()));
-    auto data = async::Argument{ 0 };
+    auto data = async::Argument{ nullptr };
     auto ptr = &data;
     async::Argument* p = nullptr;
     for (int i = 1; i < arguments.Length(); ++i) {
@@ -134,8 +135,12 @@ void Event::Urge(const FunctionCallbackInfo<Value>& arguments)
             p = new async::Argument{ int(arguments[i]->IntegerValue()) };
         else if (arguments[i]->IsNumber())
             p = new async::Argument{ arguments[i]->NumberValue() };
-        else
+        else if (arguments[i]->IsBoolean())
+            p = new async::Argument{ *arguments[i]->ToBoolean() };
+        else if (arguments[i]->IsString())
             p = new async::Argument{ std::string(*String::Utf8Value(arguments[i]->ToString())) };
+        else
+            continue;
         ptr->next(p);
         ptr = p;
     }

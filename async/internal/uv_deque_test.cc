@@ -16,7 +16,9 @@
 
 #include "../Argument.h"
 #include <chrono>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <thread>
 
 std::ostream& operator<<(std::ostream& os, const async::Argument& argv)
@@ -48,6 +50,12 @@ public:
 
     virtual void process(const async::internal::uv_deque<async::Argument>::Data<async::Argument>& data)
     {
+        for (auto it = mFns.begin(); it != mFns.end(); ++it) {
+            if (it->first.compare(data.event) == 0) {
+                it->second();
+                return;
+            }
+        }
         auto ptr = &data.argument;
         std::cout << data.event << ": ";
         while (ptr) {
@@ -60,6 +68,11 @@ public:
     void run()
     {
         mThread = std::thread(&Q::loop, this);
+    }
+
+    void on(const std::string& event, std::function<void()> fn)
+    {
+        mFns[event] = fn;
     }
 
 protected:
@@ -82,24 +95,29 @@ protected:
 private:
     void loop()
     {
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+        auto start = std::chrono::steady_clock::now();
         while (1) {
-            std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+            auto now = std::chrono::steady_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
             if (duration > 1000000)
                 break;
             emit("duration", 1, 2.01f, "WOW", true, false, duration);
             usleep(100000);
         }
+        emit("done", true);
     }
     std::thread mThread;
+    std::map<std::string, std::function<void()>> mFns;
 };
 
 int main(int argc, char const* argv[])
 {
     Q q{};
+    q.on("done", [&q]() {
+        std::cout << &q << " exit" << std::endl;
+        uv_stop(uv_default_loop());
+    });
     q.run();
-
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     return 0;
 }
