@@ -20,6 +20,7 @@
 #include <iostream>
 #include <map>
 #include <thread>
+#include <unistd.h>
 
 std::ostream& operator<<(std::ostream& os, const async::Argument& argv)
 {
